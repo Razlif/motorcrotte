@@ -1,0 +1,3 @@
+[submodule "Pygame_Functions"]
+	path = Pygame_Functions
+	url = https://github.com/razlif/Pygame_Functions

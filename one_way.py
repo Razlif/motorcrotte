@@ -6,12 +6,12 @@ setAutoUpdate(False)
 
 
 
-def spawn_top_cars(top_cars_list):
+def spawn_top_cars(top_car_list):   # if no cars in the list create a car and append to list 
     if len(top_cars_list) < 1:
         car = top_car()
         top_cars_list.append(car)
 
-def spawn_bottom_cars(bottom_cars_list):
+def spawn_bottom_cars(bottom_car_list):
     if len(bottom_cars_list) < 1:
         car = bottom_car()
         bottom_cars_list.append(car)
@@ -32,13 +32,7 @@ def spawn_bicycle(bicycle_list):
 
 class top_car():
     def __init__(self):       
-        probability = random.randint(1,5)
-        if probability == 1:
-            self.xpos = -300
-            self.special = False
-        else:
-            self.xpos = random.randint(5,7) * 200
-            self.special = False
+        self.xpos = random.randint(5,7) * 200
         self.ypos = random.randint(290,315)
         self.speed = random.randint(2,4)
         self.health = 100 
@@ -49,31 +43,31 @@ class top_car():
         self.timeOfNextFrame = clock()
         self.type = random.randint(1,2)
         image_name = "car"+str(self.type)
-        self.sprite = makeSprite("images/"+image_name+".png",4)
-        self.impact_picture = pygame.image.load("images/poop.png") 
+        self.sprite = makeSprite("media/images/"+image_name+".png",4)
+        self.impact_picture = pygame.image.load("media/images/poop.png") 
         showSprite(self.sprite)
         
 
-    def move(self, hero, bullets, top_cars_list):
+    def move(self, hero, bullets, top_car_list):
              
-        if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
-            self.frame = (self.frame + 1) % 4  # There are 8 frames of animation in each direction
-            self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
+        if clock() > self.timeOfNextFrame:  
+            self.frame = (self.frame + 1) % 4  
+            self.timeOfNextFrame += 80  
         changeSpriteImage(self.sprite,  0*4+self.frame)
         
-        for car in top_cars_list:
-            if self.sprite in allTouching(car.sprite):
+        for car in top_car_list:   # in case of collision with other cars in the list 
+            if self.sprite in allTouching(car.sprite):   # in case sprites are overlapping but necessarly in collision
                 if self.xpos < car.xpos:
                     self.xpos -= 1
                     car.xpos += 1
-                    car.speed +=0.25
-                    if abs((car.ypos + car.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 20:
+                    car.speed +=0.25   # the back car will acclerate
+                    if abs((car.ypos + car.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 20:   # in case of collision
                         probability = random.randint(1,3)
                         if probability == 1:
-                            horn_sound.play()
+                            horn_sound.play()   # only sometimes play the horn 
                         self.xpos -= 5
                         car.xpos += 10
-                        if car.ypos > self.ypos:
+                        if car.ypos > self.ypos:   # the back car will also move up or down to exit collision status 
                             self.ypos-=11
                         else:
                             self.ypos+=11
@@ -81,8 +75,7 @@ class top_car():
                         
                     
 
-        
-        #sprite_group.change_layer(self.sprite, sprite_group.layers()[-1])
+        # in case of collision with player
         if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 15  and hero.jump == False:
             if self.xpos < hero.xpos:
                 horn_sound.play()
@@ -90,7 +83,8 @@ class top_car():
         else:
             self.collision = False
         
-              
+         
+        # when in collision status 
         if self.collision == True:
             if self.running == True:
                 hero.speed = hero.speed * 0.5
@@ -111,57 +105,55 @@ class top_car():
             self.running = True
         
         
+        # manage bullet impact
         for bullet in bullets:
             if self.sprite in allTouching(bullet.sprite):
-                if bullet.impact == False:
+                if bullet.impact == False:   
                     self.hit = True
                     hit_position_x = random.randint(65,150)
                     hit_position_y = random.randint(0,20)
+                    
+                    # paint the impact picture in the hit location to all frames of the sprite
                     for frame in range(4):
                         changeSpriteImage(self.sprite, frame)
                         self.sprite.image.blit(self.impact_picture, (hit_position_x, hit_position_y))                                        
+                    
+                    # kill the bullet sprite
                     killSprite(bullet.sprite)
         
         
+        When hit by bullet 
         if self.hit == True:
             horn_sound.play()
             self.running = False
             self.hit = False
         
                                 
+        
+        # when running (not hit or collision)
         if self.running == True:
-            if self.special == True:
-                if hero.speed > 0:
-                    if self.xpos < (hero.xpos - 250) or self.xpos > (hero.xpos + 650):
-                        self.speed += 0.15
-                    else:
-                        self.speed += 0.01
+            if hero.speed > 5:
+                self.speed = hero.speed * (random.randint(5,9)*0.1)
             else:
-                if hero.speed > 5:
-                    self.speed = hero.speed * (random.randint(5,9)*0.1)
-                else:
-                    self.speed = random.randint(2,5)
+                self.speed = random.randint(2,5)
             self.xpos += self.speed
             self.xpos += int(hero.speed)*-1
-            
-
         else:
             self.speed = 0
             self.xpos += int(hero.speed)*-1
         
+        
+        # when out of bounds kill car sprite
         if self.xpos - hero.xpos > 1200 or self.xpos - hero.xpos < -1200:
             killSprite(self.sprite)
             return False
             
+        
+        # keep car in play boundries
         if self.ypos < 280:
             self.ypos = 280
         if self.ypos > 380:
             self.ypos = 380
-            
-        #if hero.ypos > self.ypos:
-        #    spriteGroup.move_to_front(hero.sprite)
-        #else:
-        #    spriteGroup.move_to_back(hero.sprite)
             
         moveSprite(self.sprite, self.xpos, self.ypos)
         
@@ -176,11 +168,11 @@ class top_car():
 class bottom_car():
     def __init__(self):       
         probability = random.randint(1,4)
-        if probability == 1:
+        if probability == 1:   # create special fast car behind the player
             self.xpos = -300
             self.ypos = random.randint(340,380)
             self.special = True
-        else:
+        else:   # create regular car infront of the player
             self.xpos = random.randint(5,7) * 200
             self.ypos = random.randint(360,380)
             self.special = False
@@ -194,19 +186,19 @@ class bottom_car():
         self.timeOfNextFrame = clock()
         self.type = random.randint(1,2)
         image_name = "car"+str(self.type)
-        self.sprite = makeSprite("images/"+image_name+".png",4)
-        self.impact_picture = pygame.image.load("images/poop.png") 
+        self.sprite = makeSprite("media/images/"+image_name+".png",4)
+        self.impact_picture = pygame.image.load("media/images/poop.png") 
         showSprite(self.sprite)
         
 
     def move(self, hero, bullets, bottom_cars_list):
              
-        if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
-            self.frame = (self.frame + 1) % 4  # There are 8 frames of animation in each direction
-            self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
+        if clock() > self.timeOfNextFrame:  
+            self.frame = (self.frame + 1) % 4  
+            self.timeOfNextFrame += 80  
         changeSpriteImage(self.sprite,  0*4+self.frame)
         
-        for car in bottom_cars_list:
+        for car in bottom_car_list:
             if self.sprite in allTouching(car.sprite):
                 if self.xpos < car.xpos:
                     self.xpos -= 1
@@ -224,9 +216,7 @@ class bottom_car():
                             self.ypos+=11
                             
                     
-
         
-        #sprite_group.change_layer(self.sprite, sprite_group.layers()[-1])
         if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 15  and hero.jump == False:
             if self.xpos < hero.xpos:
                 horn_sound.play()
@@ -297,11 +287,6 @@ class bottom_car():
             killSprite(self.sprite)
             return False
             
-        
-        #if hero.ypos > self.ypos:
-        #    spriteGroup.move_to_front(hero.sprite)
-        #else:
-        #    spriteGroup.move_to_back(hero.sprite)
         if self.ypos < 280:
             self.ypos = 280
         if self.ypos > 380:
@@ -337,16 +322,16 @@ class Scooter():
         self.timeOfNextFrame = clock()
         self.type = random.randint(1,3)
         image_name = "bike"+str(self.type)
-        self.sprite = makeSprite("images/"+image_name+".png",4)
-        self.impact_picture = pygame.image.load("images/poop.png") 
+        self.sprite = makeSprite("media/images/"+image_name+".png",4)
+        self.impact_picture = pygame.image.load("media/images/poop.png") 
         showSprite(self.sprite)
         
 
     def move(self, hero, bullets, scooter_list, top_cars_list, bottom_cars_list):
              
-        if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
-            self.frame = (self.frame + 1) % 4  # There are 8 frames of animation in each direction
-            self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
+        if clock() > self.timeOfNextFrame:  
+            self.frame = (self.frame + 1) % 4  
+            self.timeOfNextFrame += 80  
         changeSpriteImage(self.sprite,  0*4+self.frame)
         
         for scooter in scooter_list:
@@ -367,7 +352,7 @@ class Scooter():
                             self.ypos+=11
         
         
-        for car in top_cars_list:
+        for car in top_car_list:
             if self.sprite in allTouching(car.sprite):
                 if self.xpos < car.xpos:
                     self.xpos -= 1
@@ -384,7 +369,7 @@ class Scooter():
                         else:
                             self.ypos+=11
         
-        for car in bottom_cars_list:
+        for car in bottom_car_list:
             if self.sprite in allTouching(car.sprite):
                 if self.xpos < car.xpos:
                     self.xpos -= 1
@@ -401,10 +386,7 @@ class Scooter():
                         else:
                             self.ypos+=11
                             
-                    
-
         
-        #sprite_group.change_layer(self.sprite, sprite_group.layers()[-1])
         if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 15  and hero.jump == False:
             if self.xpos < hero.xpos:
                 horn_sound.play()
@@ -481,11 +463,6 @@ class Scooter():
         if self.ypos > 380:
             self.ypos = 380
             
-        #if hero.ypos > self.ypos:
-        #    spriteGroup.move_to_front(hero.sprite)
-        #else:
-        #    spriteGroup.move_to_back(hero.sprite)
-            
         moveSprite(self.sprite, self.xpos, self.ypos)
         
     
@@ -516,22 +493,20 @@ class Bicycle():
         self.collision = False
         self.hit = False
         self.timeOfNextFrame = clock()
-        self.sprite = makeSprite("images/bicycle_flip.png",4)
-        self.impact_picture = pygame.image.load("images/poop.png") 
+        self.sprite = makeSprite("media/images/bicycle_flip.png",4)
+        self.impact_picture = pygame.image.load("media/images/poop.png") 
         showSprite(self.sprite)
         
 
     def move(self, hero, bullets, scooter_list, top_cars_list, bottom_cars_list):
              
-        if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
-            self.frame = (self.frame + 1) % 4  # There are 8 frames of animation in each direction
-            self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
+        if clock() > self.timeOfNextFrame:  
+            self.frame = (self.frame + 1) % 4  
+            self.timeOfNextFrame += 80  
         changeSpriteImage(self.sprite,  0*4+self.frame)
-                            
-                    
+                             
 
         
-        #sprite_group.change_layer(self.sprite, sprite_group.layers()[-1])
         if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 5  and hero.jump == False:
             if self.xpos < hero.xpos:
                 self.collision = True
@@ -605,10 +580,6 @@ class Bicycle():
         if self.ypos > 230:
             self.ypos = 230
             
-        #if hero.ypos > self.ypos:
-        #    spriteGroup.move_to_front(hero.sprite)
-        #else:
-        #    spriteGroup.move_to_back(hero.sprite)
             
         moveSprite(self.sprite, self.xpos, self.ypos)
         

@@ -1,10 +1,9 @@
-########## MOTORCROTTEE!!!
+## player controls
 
 # import pygame functions acript
 from Pygame_Functions.pygame_functions import *
 from sound_elements import *
 
-# no idea
 setAutoUpdate(False)
 
 # empty list for bullets
@@ -32,9 +31,9 @@ class Player():
         self.up = False
         self.down = False
         self.shoot = False       
-        self.sprite = makeSprite("images/links.png",32)
-        addSpriteImage(self.sprite, "images/jump.png")
-        addSpriteImage(self.sprite, "images/dash.png")
+        self.sprite = makeSprite("media/images/links.png",32)
+        addSpriteImage(self.sprite, "media/images/jump.png")
+        addSpriteImage(self.sprite, "media/images/dash.png")
         showSprite(self.sprite)
         self.frame = 0
         self.timeOfNextFrame = clock()
@@ -81,8 +80,7 @@ class Player():
             
         # SHOOTING 
         if keyPressed("w"):
-            self.ydir = 0
-            self.xdir = 1
+            self.xdir = 1   # set shot direction
             self.shoot = True
         else:
             self.shoot = False
@@ -93,7 +91,7 @@ class Player():
             idle_sound.stop()
             runing_sound.play()
             changeSpriteImage(self.sprite,  0*8+self.frame)    
-            if self.speed < 14:
+            if self.speed < 14:  # speed limit - but can be sxceeded using the DASH move 
                 self.speed +=0.03
         
         # when break
@@ -102,7 +100,7 @@ class Player():
             idle_sound.play()
             if self.speed > 0:
                 self.speed -=0.02
-                if self.xpos > 100:
+                if self.xpos > 100:   # if breaking while player position hogher than 100 player's position will move back on the screen
                     changeSpriteImage(self.sprite,32)
                     self.xpos -= 4
         
@@ -110,7 +108,7 @@ class Player():
         else:  
             changeSpriteImage(self.sprite,  0*8+self.frame) 
             if self.speed > 0:
-                self.speed -=0.002
+                self.speed -=0.002   # natural deceleration 
                 runing_sound.stop()
                 idle_sound.play()
         
@@ -139,7 +137,7 @@ class Player():
         if self.jump == True:
             self.ypos -= self.jump_meter
             self.jump_meter -= 0.5
-            changeSpriteImage(self.sprite,32)
+            changeSpriteImage(self.sprite,32)   # switch to jump frame animation
             if self.jump_meter < (self.jump_origin*-1):
                 self.jump = False
                 self.jump_meter = self.jump_origin
@@ -150,23 +148,21 @@ class Player():
             if self.dash_meter < 1:
                 changeSpriteImage(self.sprite,0)
                 self.dash_meter -= 0.25
-                #self.xpos += self.dash_meter
-                #changeSpriteImage(self.sprite,33)
             if self.dash_meter < (self.dash_origin*-1):
                 self.dash = False
                 self.dash_meter = self.dash_origin
             else:
-                self.speed +=0.03
+                self.speed +=0.03   # increase speed when dash
                 self.xpos += self.dash_meter
                 self.dash_meter -= 0.25
-                changeSpriteImage(self.sprite,33)
+                changeSpriteImage(self.sprite,33)   # switch to dash frame animation
 
 
 
         # when shoot
         if self.shoot == True:
-            if clock() > self.lastBulletTime + 240:
-                bullets.append(Projectile(self.xpos + 20, self.ypos + 20, self.xdir * 5, self.ydir * 5, 0))
+            if clock() > self.lastBulletTime + 240:   # limit shots to every 240 milisec
+                bullets.append(Projectile(self.xpos + 20, self.ypos + 20, self.xdir * 5, 0))   # create a new bullet and append it to bullet list 
                 self.lastBulletTime = clock()
                 runing_sound.stop()
                 idle_sound.stop()
@@ -191,36 +187,34 @@ class Player():
         # update bullet list
         for bullet in bullets:
             if bullet.move(self) == False:
-                hideSprite(bullet.sprite)
                 bullets.remove(bullet)
                 
     def update(self):
         self.move()
                 
 
-
-class Projectile():
-    def __init__(self, xpos, ypos, xspeed, yspeed, damage):
+# bullet class
+class Bullet():
+    def __init__(self, xpos, ypos, xspeed, damage):
         self.xpos = xpos
-        self.ypos = ypos
         self.xspeed = xspeed
         self.yspeed = yspeed
+        self.damage = 0
         self.impact = False
-        self.sprite = makeSprite("images/poop2.png")
-        addSpriteImage(self.sprite, "images/poop.png")
-        showSprite(self.sprite)
-        #spriteGroup.move_to_back(self.sprite)
-        
+        self.sprite = makeSprite("media/images/poop2.png")
+        addSpriteImage(self.sprite, "media/images/poop.png")
+        showSprite(self.sprite)        
 
     def move(self, hero):
-        if self.impact == False:
+        if self.impact == False:  # if impact is false move the bullet along the X axis based on it's speed
             self.xpos += self.xspeed
-            self.ypos += self.yspeed
-            changeSpriteImage(self.sprite,0)
+            changeSpriteImage(self.sprite,0)   # flying animation frame
         else:
-            changeSpriteImage(self.sprite,1)
-        if self.xpos < 0 or self.xpos > 1000 or self.ypos < 0 or self.ypos > 800:
+            changeSpriteImage(self.sprite,1)   # impact animation frame
+        
+        if self.xpos < 0 or self.xpos > 1000 or self.ypos < 0 or self.ypos > 800:   # false when out of boundries
             return False
+        
         moveSprite(self.sprite, self.xpos, self.ypos)
         return True
 

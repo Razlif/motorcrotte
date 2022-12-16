@@ -4,13 +4,12 @@ from sound_elements import *
 
 setAutoUpdate(False)
 
-
-def spawn_dogs(dog_list):
+def spawn_dogs(dog_list):   # if no dogs in the list create a dog and append to list 
     if len(dog_list) < 1:
         dog = Dog()
         dog_list.append(dog)
 
-def spawn_person(person_list):
+def spawn_person(person_list):   # if no pedestrian in the list create a pedestrian and append to list 
     if len(person_list) < 1:
         person = Person()
         person_list.append(person)
@@ -18,21 +17,22 @@ def spawn_person(person_list):
 
 class Dog():
     def __init__(self):
-#        self.xpos = random.randint(0,1000)
         self.xpos = random.randint(3,5) * 400
         self.ypos = random.randint(260,280) 
         self.speed = 0.5
         self.health = 100 
         self.frame = 0
         self.timeOfNextFrame = clock()
-        self.sprite = makeSprite("images/dog_walking.png",8)
+        self.sprite = makeSprite("media/images/dog_walking.png",8)
         showSprite(self.sprite)
 
     def move(self, hero):
-        if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
-            self.frame = (self.frame + 1) % 8  # There are 8 frames of animation in each direction
-            self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
+        if clock() > self.timeOfNextFrame: 
+            self.frame = (self.frame + 1) % 8  
+            self.timeOfNextFrame += 80  
         changeSpriteImage(self.sprite,  0*8+self.frame) 
+        
+        # in case of collision with player
         if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 15 and hero.jump==False:
             hero.speed = hero.speed * 0.5
             if hero.ypos > self.ypos:
@@ -40,11 +40,11 @@ class Dog():
             else:
                 self.ypos += 1
         
-        if self.xpos < hero.xpos -800:
+        if self.xpos < hero.xpos -800:   # kill sprite if out of bounds
             killSprite(self.sprite)
             return False
         else:
-            self.xpos -= self.speed
+            self.xpos -= self.speed   # move normally when in bounds
             self.xpos += int(hero.speed)*-1
             moveSprite(self.sprite, self.xpos, self.ypos)
             return True
@@ -68,21 +68,20 @@ class Person():
         self.collision = False
         self.hit = False
         self.timeOfNextFrame = clock()
-        self.sprite = makeSprite("images/person2.png",12)
-        self.impact_picture = pygame.image.load("images/poop.png") 
+        self.sprite = makeSprite("media/images/person2.png",12)
+        self.impact_picture = pygame.image.load("media/images/poop.png") 
         showSprite(self.sprite)
         
 
     def move(self, hero, bullets):
              
-        if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
-            self.frame = (self.frame + 1) % 4  # There are 8 frames of animation in each direction
-            self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
+        if clock() > self.timeOfNextFrame: 
+            self.frame = (self.frame + 1) % 4 
+            self.timeOfNextFrame += 80  
         changeSpriteImage(self.sprite,  0*4+self.frame)
                             
                     
 
-        #sprite_group.change_layer(self.sprite, sprite_group.layers()[-1])
         if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height+5)) < 5  and hero.jump == False:
             hero.speed = hero.speed * 0.5
             if hero.ypos > self.ypos:
@@ -123,7 +122,6 @@ class Person():
         if self.hit == True:
             if self.running == True:
                 hit_sound.play()
-                #self.running = False
             else:
                 hit_sound.stop
 
@@ -146,10 +144,6 @@ class Person():
         if self.ypos > 280:
             self.ypos = 280
             
-        #if hero.ypos > self.ypos:
-        #    spriteGroup.move_to_front(hero.sprite)
-        #else:
-        #    spriteGroup.move_to_back(hero.sprite)
             
         moveSprite(self.sprite, self.xpos, self.ypos)
         

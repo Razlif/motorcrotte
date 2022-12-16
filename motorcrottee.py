@@ -74,24 +74,24 @@ while True:
         if dog.update(hero) == False:   
             dog_list.pop(i)
     
-    obstacles.spawn_top_cars(top_cars_list)
-    for i,car in enumerate(top_cars_list):
-        if car.update(hero, bullets, top_cars_list) == False:
-            top_cars_list.pop(i)
+    obstacles.spawn_top_cars(top_car_list)
+    for i,car in enumerate(top_car_list):
+        if car.update(hero, bullets, top_car_list) == False:
+            top_car_list.pop(i)
     
-    obstacles.spawn_bottom_cars(bottom_cars_list)
-    for i,car in enumerate(bottom_cars_list):
-        if car.update(hero, bullets, bottom_cars_list) == False:
-            bottom_cars_list.pop(i)
+    obstacles.spawn_bottom_cars(bottom_car_list)
+    for i,car in enumerate(bottom_car_list):
+        if car.update(hero, bullets, bottom_car_list) == False:
+            bottom_car_list.pop(i)
             
     obstacles.spawn_scooters(scooter_list)
     for i,scooter in enumerate(scooter_list):
-        if scooter.update(hero, bullets, scooter_list, top_cars_list, bottom_cars_list) == False:
+        if scooter.update(hero, bullets, scooter_list, top_car_list, bottom_car_list) == False:
             scooter_list.pop(i)
     
     obstacles.spawn_bicycle(bicycle_list)
     for i,bicycle in enumerate(bicycle_list):
-        if bicycle.update(hero, bullets, scooter_list, top_cars_list, bottom_cars_list) == False:
+        if bicycle.update(hero, bullets, scooter_list, top_car_list, bottom_car_list) == False:
             bicycle_list.pop(i)
             
     layer_order = sorted(spriteGroup, key=lambda sprite: (sprite.rect.y+sprite.rect.height))   # sort the spriteGroup based on the y position of the bottom of each sprite

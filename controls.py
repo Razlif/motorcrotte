@@ -162,7 +162,7 @@ class Player():
         # when shoot
         if self.shoot == True:
             if clock() > self.lastBulletTime + 240:   # limit shots to every 240 milisec
-                bullets.append(Projectile(self.xpos + 20, self.ypos + 20, self.xdir * 5, 0))   # create a new bullet and append it to bullet list 
+                bullets.append(Bullet(self.xpos + 20, self.ypos + 20, self.xdir * 5, 0))   # create a new bullet and append it to bullet list 
                 self.lastBulletTime = clock()
                 runing_sound.stop()
                 idle_sound.stop()
@@ -197,8 +197,8 @@ class Player():
 class Bullet():
     def __init__(self, xpos, ypos, xspeed, damage):
         self.xpos = xpos
+        self.ypos = ypos
         self.xspeed = xspeed
-        self.yspeed = yspeed
         self.damage = 0
         self.impact = False
         self.sprite = makeSprite("media/images/poop2.png")

@@ -7,14 +7,14 @@ setAutoUpdate(False)
 
 
 def spawn_top_cars(top_car_list):   # if no cars in the list create a car and append to list 
-    if len(top_cars_list) < 1:
+    if len(top_car_list) < 1:
         car = top_car()
-        top_cars_list.append(car)
+        top_car_list.append(car)
 
 def spawn_bottom_cars(bottom_car_list):
-    if len(bottom_cars_list) < 1:
+    if len(bottom_car_list) < 1:
         car = bottom_car()
-        bottom_cars_list.append(car)
+        bottom_car_list.append(car)
 
 def spawn_scooters(scooter_list):
     if len(scooter_list) < 1:
@@ -122,7 +122,7 @@ class top_car():
                     killSprite(bullet.sprite)
         
         
-        When hit by bullet 
+        #When hit by bullet 
         if self.hit == True:
             horn_sound.play()
             self.running = False
@@ -158,8 +158,8 @@ class top_car():
         moveSprite(self.sprite, self.xpos, self.ypos)
         
     
-    def update(self, hero, bullets, top_cars_list):
-        if self.move(hero, bullets, top_cars_list) == False:
+    def update(self, hero, bullets, top_car_list):
+        if self.move(hero, bullets, top_car_list) == False:
             return False
             
         
@@ -191,7 +191,7 @@ class bottom_car():
         showSprite(self.sprite)
         
 
-    def move(self, hero, bullets, bottom_cars_list):
+    def move(self, hero, bullets, bottom_car_list):
              
         if clock() > self.timeOfNextFrame:  
             self.frame = (self.frame + 1) % 4  
@@ -295,8 +295,8 @@ class bottom_car():
         moveSprite(self.sprite, self.xpos, self.ypos)
         
     
-    def update(self, hero, bullets, top_cars_list):
-        if self.move(hero, bullets, top_cars_list) == False:
+    def update(self, hero, bullets, bottom_car_list):
+        if self.move(hero, bullets, bottom_car_list) == False:
             return False
             
         
@@ -327,7 +327,7 @@ class Scooter():
         showSprite(self.sprite)
         
 
-    def move(self, hero, bullets, scooter_list, top_cars_list, bottom_cars_list):
+    def move(self, hero, bullets, scooter_list, top_car_list, bottom_car_list):
              
         if clock() > self.timeOfNextFrame:  
             self.frame = (self.frame + 1) % 4  
@@ -466,8 +466,8 @@ class Scooter():
         moveSprite(self.sprite, self.xpos, self.ypos)
         
     
-    def update(self, hero, bullets, scooter_list, top_cars_list, bottom_cars_list):
-        if self.move(hero, bullets, scooter_list, top_cars_list, bottom_cars_list) == False:
+    def update(self, hero, bullets, scooter_list, top_car_list, bottom_car_list):
+        if self.move(hero, bullets, scooter_list, top_car_list, bottom_car_list) == False:
             return False
             
 
@@ -498,7 +498,7 @@ class Bicycle():
         showSprite(self.sprite)
         
 
-    def move(self, hero, bullets, scooter_list, top_cars_list, bottom_cars_list):
+    def move(self, hero, bullets, scooter_list, top_car_list, bottom_car_list):
              
         if clock() > self.timeOfNextFrame:  
             self.frame = (self.frame + 1) % 4  
@@ -584,7 +584,7 @@ class Bicycle():
         moveSprite(self.sprite, self.xpos, self.ypos)
         
     
-    def update(self, hero, bullets, scooter_list, top_cars_list, bottom_cars_list):
-        if self.move(hero, bullets, scooter_list, top_cars_list, bottom_cars_list) == False:
+    def update(self, hero, bullets, scooter_list, top_car_list, bottom_car_list):
+        if self.move(hero, bullets, scooter_list, top_car_list, bottom_car_list) == False:
             return False
             

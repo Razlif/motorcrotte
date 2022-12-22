@@ -4,7 +4,7 @@
 from Pygame_Functions.pygame_functions import *
 import pygame
 import os
-import controls2 as controls
+import controls
 import collectibles
 import traffic as obstacles
 import sidewalk
@@ -89,17 +89,17 @@ while True:
             scooter_list.pop(i)
      
     # sort the spriteGroup based on the y position of the bottom of each sprite
-    layer_order = sorted(spriteGroup, key=lambda sprite: (sprite.rect.y+sprite.rect.height))   
-    for i, sprite in enumerate(layer_order):
-        # rearrange the spriteGroup based on the new order
-        if sprite.jump == True:
-            print("jump")
-        else:
+    if hero.jump == False:
+        layer_order = sorted(spriteGroup, key=lambda sprite: (sprite.rect.y+sprite.rect.height))   
+        for i, sprite in enumerate(layer_order):
+            # rearrange the spriteGroup based on the new order
             spriteGroup.change_layer(sprite, i)   
     
     updateDisplay()
     tick(120)
 
 endWait()
+
+
 
 

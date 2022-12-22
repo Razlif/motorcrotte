@@ -6,7 +6,7 @@ setAutoUpdate(False)
 
 
 def spawn_poop(poop_list):   # if no poops in the list create a poop and append to list 
-    if len(poop_list) < 2:
+    if len(poop_list) < 5:
         poop = Poop()
         poop_list.append(poop)
 
@@ -28,10 +28,11 @@ class Poop():
         changeSpriteImage(self.sprite,  0*8+self.frame) 
         
         # if collected by player
-        if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 15 :
+        if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 20 :
                 idle_sound.stop()
                 runing_sound.stop()
                 collect_sound.play()
+                hero.poop += 1
                 killSprite(self.sprite)
                 return False
         

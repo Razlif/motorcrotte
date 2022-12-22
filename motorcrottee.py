@@ -4,21 +4,21 @@
 from Pygame_Functions.pygame_functions import *
 import pygame
 import os
-import controls
+import controls2 as controls
 import collectibles
-import one_way as obstacles
-import dogs
+import traffic as obstacles
+import sidewalk
 from sound_elements import *
 
 setAutoUpdate(False)
 
 
 # set screen
-screen = screenSize(1000,500)
+screen = screenSize(1200,550)
 
 
 # set scrolling background
-bg = setBackgroundImage( [  ["media/images/city1.png", "media/images/city2.png"]  ])
+bg = setBackgroundImage( [  ["media/images/city3.png", "media/images/city4.png"]  ])
 
 
 
@@ -39,8 +39,7 @@ hero = controls.Player()
 bullets = controls.bullets
 
 # set up empty lists for game elements
-top_car_list = []
-bottom_car_list = []
+car_list = []
 scooter_list = []
 bicycle_list = []
 dog_list = []
@@ -64,42 +63,43 @@ while True:
         if poop.update(hero) == False:   # remove the poop from the list if it has been collected or passed
             poop_list.pop(i)
     
-    dogs.spawn_person(person_list)   
+    sidewalk.spawn_person(person_list)   
     for i,person in enumerate(person_list):
-        if person.update(hero, bullets) == False:   
+        if person.update(hero, bullets, dog_list, person_list) == False:   
             person_list.pop(i)
     
-    dogs.spawn_dogs(dog_list)   
+    sidewalk.spawn_dogs(dog_list)   
     for i,dog in enumerate(dog_list):
-        if dog.update(hero) == False:   
+        if dog.update(hero, dog_list, person_list) == False:   
             dog_list.pop(i)
     
-    obstacles.spawn_top_cars(top_car_list)
-    for i,car in enumerate(top_car_list):
-        if car.update(hero, bullets, top_car_list) == False:
-            top_car_list.pop(i)
+    sidewalk.spawn_bicycle(bicycle_list)   
+    for i,bicycle in enumerate(bicycle_list):
+        if bicycle.update(hero, bullets, dog_list, person_list) == False:   
+            bicycle_list.pop(i)
     
-    obstacles.spawn_bottom_cars(bottom_car_list)
-    for i,car in enumerate(bottom_car_list):
-        if car.update(hero, bullets, bottom_car_list) == False:
-            bottom_car_list.pop(i)
+    obstacles.spawn_cars(car_list)
+    for i,car in enumerate(car_list):
+        if car.update(hero, bullets, car_list, scooter_list) == False:
+            car_list.pop(i)
             
     obstacles.spawn_scooters(scooter_list)
     for i,scooter in enumerate(scooter_list):
-        if scooter.update(hero, bullets, scooter_list, top_car_list, bottom_car_list) == False:
+        if scooter.update(hero, bullets, scooter_list, car_list) == False:
             scooter_list.pop(i)
-    
-    obstacles.spawn_bicycle(bicycle_list)
-    for i,bicycle in enumerate(bicycle_list):
-        if bicycle.update(hero, bullets, scooter_list, top_car_list, bottom_car_list) == False:
-            bicycle_list.pop(i)
-            
-    layer_order = sorted(spriteGroup, key=lambda sprite: (sprite.rect.y+sprite.rect.height))   # sort the spriteGroup based on the y position of the bottom of each sprite
+     
+    # sort the spriteGroup based on the y position of the bottom of each sprite
+    layer_order = sorted(spriteGroup, key=lambda sprite: (sprite.rect.y+sprite.rect.height))   
     for i, sprite in enumerate(layer_order):
-        spriteGroup.change_layer(sprite, i)   # rearrange the actual spriteGroup based on the new order
-    
+        # rearrange the spriteGroup based on the new order
+        if sprite.jump == True:
+            print("jump")
+        else:
+            spriteGroup.change_layer(sprite, i)   
     
     updateDisplay()
     tick(120)
 
 endWait()
+
+

@@ -1,297 +1,193 @@
 from Pygame_Functions.pygame_functions import *
 import math, random
 from sound_elements import *
+import game_configuration as settings
+import functions
 
 setAutoUpdate(False)
 
-def spawn_dogs(dog_list):   # if no dogs in the list create a dog and append to list 
-    if len(dog_list) < 2:
+
+# function to update display on main loop
+def update_display(sidewalk_element_list, hero, bullets):
+    spawn_sidewalk_element(sidewalk_element_list)
+    for i, sidewalk_element in enumerate(sidewalk_element_list):
+        if update_state(sidewalk_element, hero, bullets, sidewalk_element_list) == False:
+            sidewalk_element_list.pop(i)
+
+
+
+# function to spawn the dogs, pedestrians and bicycles
+def spawn_sidewalk_element(sidewalk_element_list):
+    
+    # count existing sidwalk elemets
+    dog_number = sum(sidewalk_element.type == "dog" for sidewalk_element in sidewalk_element_list)
+    
+    people_number = sum(sidewalk_element.type == "person" for sidewalk_element in sidewalk_element_list)
+
+    bicycle_number = len(sidewalk_element_list) - dog_number - people_number
+
+    
+    if dog_number < settings.max_dog_number:   # if dogs are under the max number make new dog and append to list
         dog = Dog()
-        dog_list.append(dog)
-
-def spawn_person(person_list):   # if no pedestrian in the list create a pedestrian and append to list 
-    if len(person_list) < 1:
+        sidewalk_element_list.append(dog)
+    
+    if people_number < settings.max_people_number:   
         person = Person()
-        person_list.append(person)
+        sidewalk_element_list.append(person)
 
-def spawn_bicycle(bicycle_list):
-    if len(bicycle_list) < 1:
-        probability = random.randint(1,100)
-        if probability == 1:
-            bicycle = Bicycle()
-            bicycle_list.append(bicycle)
+    if bicycle_number < settings.max_bicycle_number:   
+        bicycle = Bicycle()
+        sidewalk_element_list.append(bicycle)
+
+
+
+# main sidewalk element class
+class Sidewalk_element():
+    def __init__(self, sprite, scale, intial_speed):
         
-
-class Dog():
-    def __init__(self):
+        # set to correct scale
+        transformSprite(self.sprite, 0, self.scale, hflip=False, vflip=False)
+        
+        # get sprite dimensions
+        self.height = self.sprite.rect.height
+        self.width =  self.sprite.rect.width
+        
+        # randomize intial Y position
+        self.ypos = random.randint(settings.sidewalk_bottom, settings.sidewalk_top) - self.height 
+        
+        # randomize initial x position
         self.xpos = random.randint(3,4) * 400
-        self.ypos = random.randint(290,330)
-        self.speed = random.randint(4,5) * 0.1
+        
+        # set state to default
+        self.state = "default"
         self.health = 100 
         self.frame = 0
-        self.number_of_frames = 9
-        self.timeOfNextFrame = clock()
-        self.type = random.randint(1,6)
-        if self.type ==2 or self.type == 6:
-            self.scale = 1.7
-        elif self.type == 4 or self.type == 5:
-            self.scale = 1.2
-        else:
-            self.scale = 1.4
-        self.sprite = makeSprite("media/images/dogs/dog_"+ str(self.type)+".png",self.number_of_frames)
-        transformSprite(self.sprite, 0, self.scale, hflip=False, vflip=False)
-        self.height = self.sprite.rect.height
-        self.width =  self.sprite.rect.width
-        showSprite(self.sprite)
-
-    def move(self, hero, dog_list, person_list):
-        
-        # animate by frame number every 80 milisec
-        if clock() > self.timeOfNextFrame: 
-            self.frame = (self.frame + 1) % self.number_of_frames  
-            self.timeOfNextFrame += 80  
-        changeSpriteImage(self.sprite,  0*self.number_of_frames+self.frame) 
-        
-        #for dog in dog_list:
-         #   if self.sprite in allTouching(dog.sprite):
-         #       print("meet dog")
-                #
-                # do something when meet other dog
-                
-        #for person in person_list:
-        #    if self.sprite in allTouching(person.sprite):
-        #        print("meet person")
-                #
-                # do something when meet person      
-                
-        # in case of collision with player
-        if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 5 and hero.jump==False:
-            hero.speed = hero.speed * 0.5
-            if hero.ypos+hero.height > self.ypos+self.height:
-                self.ypos -= 1
-            else:
-                self.ypos += 1
-        
-        if self.xpos < hero.xpos -800:   # kill sprite if out of bounds
-            killSprite(self.sprite)
-            return False
-        else:
-            self.xpos -= self.speed   # move normally when in bounds
-            self.xpos += int(hero.speed)*-1
-            moveSprite(self.sprite, self.xpos, self.ypos)
-            return True
-            
-
-    def update(self, hero, dog_list, person_list):
-        if self.move(hero, dog_list, person_list) == False:
-            return False
-        else:
-            return True
-
-
-class Person():
-    def __init__(self):       
-        self.speed = random.randint(2,6) * 0.1
-        self.health = 100 
-        self.frame = 0
-        self.running = True
+        self.gas = True
+        self.breaking = False
         self.collision = False
         self.hit = False
+        self.speed = intial_speed
+        
+        # set speed meter to inital speed var
+        self.speed_meter = self.speed
+        
+        # frame counter
         self.timeOfNextFrame = clock()
-        self.type = random.randint(5,7)
-        if self.type == 5:
-            self.number_of_frames = 9
-            self.scale = 1.6
-        elif self.type == 6:
-            self.number_of_frames = 6
-            self.scale = 0.5
-        else:
-            self.number_of_frames = 19
-            self.scale = 1.5
-        self.sprite = makeSprite("media/images/people/person"+ str(self.type)+".png",self.number_of_frames)
-        self.impact_picture = pygame.image.load("media/images/poop.png") 
-        transformSprite(self.sprite, 0, self.scale, hflip=False, vflip=False)
-        self.height = self.sprite.rect.height
-        self.width =  self.sprite.rect.width
-        self.xpos = random.randint(3,6) * 400
-        self.ypos = random.randint(150,180) + self.height
+        
+        # show sprite and add to spriteGroup
         showSprite(self.sprite)
         
 
-    def move(self, hero, bullets, dog_list, person_list):
-             
-        if clock() > self.timeOfNextFrame: 
-            self.frame = (self.frame + 1) % self.number_of_frames 
-            self.timeOfNextFrame += 80  
-        changeSpriteImage(self.sprite,  0*self.number_of_frames+self.frame)
-                            
-        #for dog in dog_list:
-        #    if self.sprite in allTouching(dog.sprite):
-                #
-                # do something when meet  dog
+
+
+# dog subclass
+class Dog(Sidewalk_element):
+    def __init__(self):
+        # set base vars
+        self.type = "dog"
+        
+        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames_to_animate, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
+        
+        super().__init__(self.sprite, self.scale, self.intial_speed)
+
+
+
+
+# person subclass
+class Person(Sidewalk_element):
+    def __init__(self):
+        # set base vars
+        self.type = "person"
+        
+        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames_to_animate, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
+        
+        super().__init__(self.sprite, self.scale, self.intial_speed)
+        
+
+
+# bicycle subclass
+class Bicycle(Sidewalk_element):
+    def __init__(self):
+        # set base vars
+        self.type = "bicycle"
+        
+        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames_to_animate, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
+        
+        super().__init__(self.sprite, self.scale, self.intial_speed)
+        
+
+
+# moving and general interactions
+def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
+    
+    # rotate frames in modulu of 'frame number var' every 80 milisec
+    if clock() > sidewalk_element.timeOfNextFrame:  
+        sidewalk_element.frame = (sidewalk_element.frame + 1) % sidewalk_element.number_of_frames_to_animate  
+        sidewalk_element.timeOfNextFrame += 80
                 
-        #for person in person_list:
-        #    if self.sprite in allTouching(person.sprite):
-                #
-                # do something when meet other person              
+    # in case of collision with player        
+    collision = functions.check_for_player_collision(sidewalk_element, hero)
+        
+    # update state based on other cars
+    for sidewalk_element2 in sidewalk_element_list:   
+        collision = functions.check_for_collision(sidewalk_element, sidewalk_element2)
 
-        if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height+5)) < 5  and hero.jump == False:
-            hero.speed = hero.speed * 0.5
-            if hero.ypos > self.ypos:
-                self.ypos -= 1
-            else:
-                self.ypos += 1
-        
-              
-        if self.collision == True:
-            if self.running == True:
-                hero.speed = hero.speed * 0.5
-                if hero.ypos > self.ypos:
-                    self.ypos -= 3
-                else:
-                    self.ypos += 3
-                self.running = False
-            
-            else:
-                self.speed = hero.speed
-                if hero.speed > 1:
-                    self.running = True
-        else:
-            self.running = True
-        
-        
-        for bullet in bullets:
-            if self.sprite in allTouching(bullet.sprite):
-                if bullet.impact == False:
-                    self.hit = True
-                    hit_sound.play()
-                    hit_position_x = -15
-                    hit_position_y = -15
-                    for frame in range(1,6):
-                        changeSpriteImage(self.sprite, frame)
-                        self.sprite.image.blit(self.impact_picture, (hit_position_x, hit_position_y))                                        
-                    killSprite(bullet.sprite)
+    # manage bullet impact
+    for bullet in bullets:
+        functions.when_hit(sidewalk_element, bullets)
+                 
     
-
-                                
-        if self.running == True:
-            self.xpos -= self.speed
-            self.xpos += int(hero.speed)*-1
-            
-
-        else:
-            self.speed = 0
-            self.xpos += int(hero.speed)*-1
+    
+    # when in collision with player status 
+    if sidewalk_element.collision == True:
+        sidewalk_element.breaking = True
+        runing_sound.stop()
+        idle_sound.play()
         
-        if self.xpos - hero.xpos > 1200 or self.xpos - hero.xpos < -1200:
-            killSprite(self.sprite)
-            return False
-            
-        if self.ypos+ self.height  < 340:
-            self.ypos = 340 - self.height
-        if self.ypos + self.height > 375:
-            self.ypos = 375 - self.height
-            
-            
-        moveSprite(self.sprite, self.xpos, self.ypos)
+    if sidewalk_element.hit == False:
+        changeSpriteImage(sidewalk_element.sprite,  0*sidewalk_element.number_of_frames_to_animate + sidewalk_element.frame) 
+    else:
+        sidewalk_element.speed_meter = sidewalk_element.speed_meter * 0.95
         
     
-    def update(self, hero, bullets, dog_list, person_list):
-        if self.move(hero, bullets, dog_list, person_list) == False:
-            return False
-            
-class Bicycle():
-    def __init__(self):       
-        self.xpos = random.randint(3,5) * 400
-        self.ypos = random.randint(240,280) 
-        self.sound = False
-        self.speed = random.randint(1,3)
-        self.health = 100 
-        self.frame = 0
-        self.running = True
-        self.collision = False
-        self.hit = False
-        self.timeOfNextFrame = clock()
-        self.sprite = makeSprite("media/images/bicycle_flip.png",4)
-        self.impact_picture = pygame.image.load("media/images/poop.png") 
-        showSprite(self.sprite)
-        
-
-    def move(self, hero, bullets, dog_list, person_list):
-             
-        if clock() > self.timeOfNextFrame:  
-            self.frame = (self.frame + 1) % 4  
-            self.timeOfNextFrame += 80  
-        changeSpriteImage(self.sprite,  0*4+self.frame)
-                             
-
-        
-        if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 5  and hero.jump == False:
-            if self.xpos < hero.xpos:
-                self.collision = True
-        else:
-            self.collision = False
-        
-              
-        if self.collision == True:
-            if self.running == True:
-                hero.speed = hero.speed * 0.5
-                if hero.ypos > self.ypos:
-                    hero.ypos += 3
-                else:
-                    hero.ypos -= 3
-                self.running = False
-            
-            else:
-                self.speed = hero.speed
-                if hero.speed > 1:
-                    self.running = True
-        else:
-            self.running = True
-        
-        
-        for bullet in bullets:
-            if self.sprite in allTouching(bullet.sprite):
-                if bullet.impact == False:
-                    self.hit = True
-                    hit_position_x = 5
-                    hit_position_y = 5
-                    for frame in range(4):
-                        changeSpriteImage(self.sprite, frame)
-                        self.sprite.image.blit(self.impact_picture, (hit_position_x, hit_position_y))                                        
-                    killSprite(bullet.sprite)
-        
-        
-        if self.hit == True:
-            if self.running == True:
-                hit_sound.play()
-                self.running = False
-            else:
-                hit_sound.stop
-
-                                
-        if self.running == True:
-            self.xpos -= self.speed
-            self.xpos += int(hero.speed)*-1           
-        else:
-            self.speed = 0
-            self.xpos += int(hero.speed)*-1
-        
-        
-        if self.xpos - hero.xpos > 1200 or self.xpos - hero.xpos < -1200:
-            killSprite(self.sprite)
-            return False
-            
-        if self.ypos < 240:
-            self.ypos = 240
-        if self.ypos > 280:
-            self.ypos = 280
-            
-            
-        moveSprite(self.sprite, self.xpos, self.ypos)
-        
     
-    def update(self, hero, bullets, dog_list, person_list):
-        if self.move(hero, bullets, dog_list, person_list) == False:
-            return False
+    # when gas
+    if sidewalk_element.gas == True:
             
+        # increase speed up to self.speed var
+        if sidewalk_element.speed_meter < sidewalk_element.speed:
+            sidewalk_element.speed_meter += settings.gas_acceleration
+            
+    # when breaking    
+    elif sidewalk_element.breaking == True:
+        # decrease speed
+        sidewalk_element.speed_meter -= settings.breaking_deceleration 
+    else:
+        sidewalk_element.speed_meter -= settings.natural_deceleration 
+        # natural deceleration
+            
+                
+        
+    ## move
+    if sidewalk_element.speed_meter < 0:  # low speed boundry
+        sidewalk_element.speed_meter = 0
+        
+        
+    sidewalk_element.xpos -= sidewalk_element.speed_meter * (random.randint(7,9)* 0.1)  # change  X position by speed meter
+    sidewalk_element.xpos += int(hero.speed)*-1   # adapt to background scroll
+
+ 
+    # keep Y position boundries
+    if sidewalk_element.ypos + sidewalk_element.height > settings.sidewalk_bottom:
+        sidewalk_element.ypos = settings.sidewalk_bottom - sidewalk_element.height
+    if sidewalk_element. ypos + sidewalk_element.height < settings.sidewalk_top:
+        sidewalk_element.ypos = settings.sidewalk_top - sidewalk_element.height
+        
+        
+    # when far enough in front or behind kill car sprite
+    if sidewalk_element.xpos - hero.xpos > settings.out_of_bounds_x or sidewalk_element.xpos - hero.xpos < settings.out_of_bounds_x * -1:
+        killSprite(sidewalk_element.sprite)
+        return False
+
+    # update actual postiion on screen
+    moveSprite(sidewalk_element.sprite, sidewalk_element.xpos, sidewalk_element.ypos)

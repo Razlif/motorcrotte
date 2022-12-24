@@ -4,6 +4,7 @@
 from Pygame_Functions.pygame_functions import *
 from sound_elements import *
 import math, random
+import game_configuration as settings
 
 setAutoUpdate(False)
 

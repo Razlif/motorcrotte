@@ -2,7 +2,7 @@ from Pygame_Functions.pygame_functions import *
 import math, random
 from sound_elements import *
 import game_configuration as settings
-import functions
+import functions2 as functions
 
 setAutoUpdate(False)
 
@@ -13,6 +13,7 @@ def update_display(vehicle_list, hero, bullets):
     for i, vehicle in enumerate(vehicle_list):
         if update_state(vehicle, hero, bullets, vehicle_list) == False:
             vehicle_list.pop(i)
+
     
     
     
@@ -26,10 +27,12 @@ def spawn_vehicles(vehicle_list):
     if car_number < settings.max_car_number:   # if cars are under the max number make new car and append to list
         car = Car()
         vehicle_list.append(car)
+
     
     if scooter_number < settings.max_scooter_number:   # if scooters are under the max number make new scooter and append to list
         scooter = Scooter()
         vehicle_list.append(scooter)
+
 
 
 
@@ -66,6 +69,7 @@ class Vehicle:
         self.hit = False
         self.label = False
         self.speed = intial_speed
+        self.pseudo_location_y = self.ypos + self.height
         
         # set speed meter to inital speed var
         self.speed_meter = self.speed
@@ -112,7 +116,10 @@ def update_state(vehicle, hero, bullets, vehicle_list):
     if clock() > vehicle.timeOfNextFrame:  
         vehicle.frame = (vehicle.frame + 1) % vehicle.number_of_frames_to_animate  
         vehicle.timeOfNextFrame += 80
-                
+    
+    # update bottom location coordinate for sprite drawing order
+    vehicle.pseudo_location_y = vehicle.ypos + vehicle.height
+        
     # in case of collision with player        
     collision = functions.check_for_player_collision(vehicle, hero)
     
@@ -132,15 +139,15 @@ def update_state(vehicle, hero, bullets, vehicle_list):
             vehicle.speed_meter += settings.gas_acceleration
                 
         # check for lane
-        if   settings.lane_1_top < vehicle.ypos + vehicle.height < settings.lane_1_bottom:
+        if   settings.lane_1_top < vehicle.pseudo_location_y < settings.lane_1_bottom:
             vehicle.lane = 1
-        elif settings.lane_2_top > vehicle.ypos + vehicle.height > settings.lane_2_bottom :
+        elif settings.lane_2_top > vehicle.pseudo_location_y > settings.lane_2_bottom :
             vehicle.lane = 2
         else:
             vehicle.lane = "no lane"
             if vehicle.state != "overlap":  # if not in collision and between lanes - gravitate to closest lane
-                if settings.lane_2_top > vehicle.ypos + vehicle.height > settings.lane_1_bottom:
-                    if abs(vehicle.ypos + vehicle.height - settings.lane_1_bottom) > abs(vehicle.ypos + vehicle.height -settings.lane_2_top) :
+                if settings.lane_2_top > vehicle.pseudo_location_y > settings.lane_1_bottom:
+                    if abs(vehicle.pseudo_location_y - settings.lane_1_bottom) > abs(vehicle.pseudo_location_y -settings.lane_2_top) :
                         vehicle.ypos += 0.1
                     else:
                         vehicle.ypos -= 0.1
@@ -188,9 +195,9 @@ def update_state(vehicle, hero, bullets, vehicle_list):
  
  
     # keep Y position boundries
-    if vehicle.ypos + vehicle.height > settings.lane_2_bottom:
+    if vehicle.pseudo_location_y > settings.lane_2_bottom:
         vehicle.ypos = settings.lane_2_bottom - vehicle.height
-    if vehicle. ypos + vehicle.height < settings.lane_1_top:
+    if vehicle.pseudo_location_y < settings.lane_1_top:
         vehicle.ypos = settings.lane_1_top - vehicle.height
         
 

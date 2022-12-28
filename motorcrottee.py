@@ -6,8 +6,8 @@ import pygame
 import os
 import controls
 import collectibles
-import refactoring as obstacles
-import refactoring_sidewalk as sidewalk
+import traffic as obstacles
+import sidewalk
 from sound_elements import *
 import game_configuration as settings
 import functions
@@ -59,14 +59,10 @@ while True:
     sidewalk.update_display(sidewalk_element_list, hero, bullets) # update the sidewalk
     
     collectibles.update_display(poop_list, hero)  # update the poop
-     
-    # sort the spriteGroup based on the y position of the bottom of each sprite
-    layer_order = sorted(spriteGroup, key=lambda sprite: (sprite.rect.y+sprite.rect.height))   
-    for i, sprite in enumerate(layer_order):
-        if sprite != hero and hero.jump == False:
-        # rearrange the spriteGroup based on the new order
-            spriteGroup.change_layer(sprite, i)   
     
+    # sort the spriteGroup based on the y position of the bottom of each sprite
+    functions.sort_sprites_by_pseudo_location_y(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, hero)
+        
     updateDisplay()
     tick(120)
 

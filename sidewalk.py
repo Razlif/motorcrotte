@@ -2,7 +2,7 @@ from Pygame_Functions.pygame_functions import *
 import math, random
 from sound_elements import *
 import game_configuration as settings
-import functions
+import functions2 as functions
 
 setAutoUpdate(False)
 
@@ -13,6 +13,7 @@ def update_display(sidewalk_element_list, hero, bullets):
     for i, sidewalk_element in enumerate(sidewalk_element_list):
         if update_state(sidewalk_element, hero, bullets, sidewalk_element_list) == False:
             sidewalk_element_list.pop(i)
+
 
 
 
@@ -30,14 +31,17 @@ def spawn_sidewalk_element(sidewalk_element_list):
     if dog_number < settings.max_dog_number:   # if dogs are under the max number make new dog and append to list
         dog = Dog()
         sidewalk_element_list.append(dog)
+
     
     if people_number < settings.max_people_number:   
         person = Person()
         sidewalk_element_list.append(person)
 
+
     if bicycle_number < settings.max_bicycle_number:   
         bicycle = Bicycle()
         sidewalk_element_list.append(bicycle)
+
 
 
 
@@ -67,7 +71,7 @@ class Sidewalk_element():
         self.collision = False
         self.hit = False
         self.speed = intial_speed
-        
+        self.pseudo_location_y = self.ypos + self.height
         # set speed meter to inital speed var
         self.speed_meter = self.speed
         
@@ -124,7 +128,10 @@ def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
     if clock() > sidewalk_element.timeOfNextFrame:  
         sidewalk_element.frame = (sidewalk_element.frame + 1) % sidewalk_element.number_of_frames_to_animate  
         sidewalk_element.timeOfNextFrame += 80
-                
+    
+    # update bottom location coordinate for sprite drawing order
+    sidewalk_element.pseudo_location_y = sidewalk_element.ypos + sidewalk_element.height
+        
     # in case of collision with player        
     collision = functions.check_for_player_collision(sidewalk_element, hero)
         
@@ -178,9 +185,9 @@ def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
 
  
     # keep Y position boundries
-    if sidewalk_element.ypos + sidewalk_element.height > settings.sidewalk_bottom:
-        sidewalk_element.ypos = settings.sidewalk_bottom - sidewalk_element.height
-    if sidewalk_element. ypos + sidewalk_element.height < settings.sidewalk_top:
+    if sidewalk_element.pseudo_location_y < settings.sidewalk_bottom:
+        sidewalk_element.ypos = settings.sidewalk_bottom + sidewalk_element.height
+    if sidewalk_element.pseudo_location_y > settings.sidewalk_top:
         sidewalk_element.ypos = settings.sidewalk_top - sidewalk_element.height
         
         

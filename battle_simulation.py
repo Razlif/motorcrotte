@@ -11,6 +11,7 @@ import sidewalk
 from sound_elements import *
 import game_configuration as settings
 import functions
+import enemies
 
 setAutoUpdate(False)
 
@@ -39,9 +40,8 @@ hero = controls.Player()
 bullets = controls.bullets
 
 # set up empty lists for game elements
-vehicle_list = []
-poop_list = []
-sidewalk_element_list = []
+enemy_list = []
+
 
 
 #main game loop
@@ -54,19 +54,16 @@ while True:
     
     hero.update()   # update the player's actions
     
-    obstacles.update_display(vehicle_list, hero, bullets) # update the traffic
-    
-    sidewalk.update_display(sidewalk_element_list, hero, bullets) # update the sidewalk
-    
-    collectibles.update_display(poop_list, hero)  # update the poop
+    enemies.update_display(enemy_list, hero) 
     
     # sort the spriteGroup based on the y position of the bottom of each sprite
-    functions.sort_sprites_by_pseudo_location_y(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, hero)
+    #functions.sort_sprites_by_pseudo_location_y(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, hero)
         
     updateDisplay()
     tick(120)
 
 endWait()
+
 
 
 

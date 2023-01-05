@@ -25,10 +25,6 @@ class Player():
         self.jump = False
         self.jump_size = 13 # the size of the jump in pixels
         self.jump_meter = self.jump_size # reset jump meter to jump size var
-        self.roof = False
-        self.bounce = False
-        self.bounce_size = 15 # the size of the jump in pixels
-        self.bounce_meter = self.bounce_size # reset jump meter to jump size var
         self.dash = False
         self.dash_origin = 13
         self.dash_meter = self.dash_origin
@@ -37,7 +33,8 @@ class Player():
         self.up = False
         self.down = False
         self.shoot = False
-        self.special = False
+        self.special = False # change to other skins
+        self.roof = False # when on roof
         self.poop = 0
         
         # create sprite
@@ -53,12 +50,12 @@ class Player():
         # addirional vars
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
-        self.pseudo_location_y = self.ypos + self.height
+        self.bottom = self.ypos + self.height
+        self.ground_position = self.bottom
         self.frame = 0
         self.number_of_frames = 2
         self.timeOfNextFrame = clock()
         self.lastBulletTime = clock()
-        self.pseudo_location_y = self.ypos + self.height
         self.previous_position = (self.xpos, self.ypos)
         
         # show sprite and add to spriterGroup
@@ -171,15 +168,17 @@ class Player():
         
         
         # update bottom location coordinate for sprite drawing order but not when hero is jumping
-        if self.jump == False:
-            self.pseudo_location_y = self.ypos + self.height
+        self.bottom = self.ypos + self.height
+        
+        if self.jump == False: # keep ground position same when jumping
+            self.ground_position = self.bottom
             
         # when gas
         if self.gas == True:  
             idle_sound.stop()
             runing_sound.play()
             changeSpriteImage(self.sprite,  0*self.number_of_frames+self.frame)    
-            if self.speed < 20:  # speed limit - but can be sxceeded using the DASH move 
+            if self.speed < 20:  # speed limit - but can be exceeded using the DASH move 
                 self.speed +=0.06
         
         # when break
@@ -210,7 +209,7 @@ class Player():
                 if self.ypos < 290 and self.ypos > 275:  # skip the pavement when moving up the screen
                     self.ypos = 275                  
             else:
-                self.pseudo_location_y -= 1
+                self.ground_position -= 1
                 self.ypos -= 1
 
 
@@ -221,7 +220,7 @@ class Player():
                 if self.ypos > 275 and self.ypos < 290:  # skip the pavement when moving down the screen
                     self.ypos = 290                  
             else:
-                self.pseudo_location_y += 1
+                self.ground_position += 1
                 self.ypos += 1
 
                                    
@@ -314,7 +313,8 @@ class Bullet():
         addSpriteImage(self.sprite, "media/images/poop.png")
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
-        self.pseudo_location_y = self.ypos + self.height
+        self.bottom = self.ypos + self.height
+        self.ground_position = 0
         showSprite(self.sprite)
         
 
@@ -322,7 +322,8 @@ class Bullet():
         if self.impact == False:  # if impact is false move the bullet along the X axis based on it's speed
             self.xpos += self.xspeed
             changeSpriteImage(self.sprite,0)   # flying animation frame
-            self.pseudo_location_y = self.ypos + self.height
+            self.bottom = self.ypos + self.height
+            self.ground_position = hero.ground_position
         else:
             changeSpriteImage(self.sprite,1)   # impact animation frame
         

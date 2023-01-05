@@ -40,10 +40,6 @@ class Enemy():
         self.jump = False
         self.jump_size = 13 # the size of the jump in pixels
         self.jump_meter = self.jump_size # reset jump meter to jump size var
-        self.roof = False
-        self.bounce = False
-        self.bounce_size = 15 # the size of the jump in pixels
-        self.bounce_meter = self.bounce_size # reset jump meter to jump size var
         self.dash = False
         self.dash_origin = 13
         self.dash_meter = self.dash_origin
@@ -52,8 +48,6 @@ class Enemy():
         self.up = False
         self.down = False
         self.shoot = False
-        self.special = False
-        self.poop = 0
         self.max_speed = 0
         
         # create sprite
@@ -69,12 +63,12 @@ class Enemy():
         # addirional vars
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
-        self.pseudo_location_y = self.ypos + self.height
+        self.bottom = self.ypos + self.height
+        self.ground_position = self.bottom
         self.frame = 0
-        self.number_of_frames_to_animate = 4
+        self.number_of_frames = 4
         self.timeOfNextFrame = clock()
         self.lastBulletTime = clock()
-        self.pseudo_location_y = self.ypos + self.height
         self.state = "neutral"
         self.previous_position = (self.xpos, self.ypos)
         
@@ -94,7 +88,8 @@ def update_state(enemy, hero):
         enemy.timeOfNextFrame += 80
     
     # update bottom location coordinate for sprite drawing order
-    enemy.pseudo_location_y = enemy.ypos + enemy.height
+    enemy.bottom = enemy.ypos + enemy.height
+    enemy.ground_position = enemy.bottom
     
     distance = math.sqrt((hero.xpos - enemy.xpos)**2 + (hero.ypos - enemy.ypos)**2)
 
@@ -117,7 +112,7 @@ def update_state(enemy, hero):
             enemy.state = "attack"
     
     if enemy.state == "attack":
-        if hero.pseudo_location_y > enemy.pseudo_location_y:
+        if hero.ground_position > enemy.ground_position:
             enemy.up = False
             enemy.down = True
         else:
@@ -130,7 +125,7 @@ def update_state(enemy, hero):
             enemy.gas = False
     
     elif enemy.state == "defense":
-        if hero.pseudo_location_y > enemy.pseudo_location_y:
+        if hero.ground_position > enemy.ground_position:
             enemy.up = True
             enemy.down = False
         else:
@@ -150,12 +145,12 @@ def update_state(enemy, hero):
             
         # when gas
     if enemy.gas == True:  
-        changeSpriteImage(enemy.sprite,  0*enemy.number_of_frames_to_animate+enemy.frame)    
+        changeSpriteImage(enemy.sprite,  0*enemy.number_of_frames+enemy.frame)    
         enemy.speed +=0.3    
         # when idle
     else:
         enemy.speed -=0.5
-        changeSpriteImage(enemy.sprite,  0*enemy.number_of_frames_to_animate+enemy.frame)
+        changeSpriteImage(enemy.sprite,  0*enemy.number_of_frames+enemy.frame)
         transformSprite(enemy.sprite, 0, enemy.scale , hflip=True, vflip=False)
         
         
@@ -179,7 +174,7 @@ def update_state(enemy, hero):
     enemy.xpos += int(hero.speed)*-1   # adapt to background scroll
     
     if enemy.sprite in allTouching(hero.sprite):
-        if hero.pseudo_location_y > enemy.pseudo_location_y:
+        if hero.ground_position > enemy.ground_position:
             enemy.ypos -= 25
         else:
             enemy.ypos += 25
@@ -215,7 +210,8 @@ def update_enemy_movement(enemy, hero):
         enemy.timeOfNextFrame += 80
     
     # update bottom location coordinate for sprite drawing order
-    enemy.pseudo_location_y = enemy.ypos + enemy.height
+    enemy.bottom = enemy.ypos + enemy.height
+    enemy.ground_position = enemy.bottom
     enemy.max_speed = 0.5 
  
  

@@ -2,6 +2,8 @@
 from Pygame_Functions.pygame_functions import *
 import math, random
 
+# # load impact pic
+impact_picture = pygame.image.load("media/images/poop.png")
 
 # game settings
 
@@ -73,11 +75,11 @@ front_x_adjustment_when_overlap = 0.3
 
 # sidewalk settings
 
-max_dog_number = 2
+max_dog_number = 0
 
-max_people_number = 1
+max_people_number = 0
 
-max_bicycle_number = 1
+max_bicycle_number = 0
 
 sidewalk_bottom = 340
 

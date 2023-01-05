@@ -2,7 +2,7 @@ from Pygame_Functions.pygame_functions import *
 import math, random
 from sound_elements import *
 import game_configuration
-import functions2 as functions
+import functions
 
 setAutoUpdate(False)
 
@@ -25,15 +25,15 @@ def update_display(poop_list, hero):
 class Poop():
     def __init__(self):
         self.xpos = random.randint(3,5) * 400
-        self.ypos = random.randint(280,460)
-        self.speed = 0
-        self.health = 100 
+        self.ypos = random.randint(280,460) 
         self.frame = 0
         self.timeOfNextFrame = clock()
-        self.sprite = makeSprite("media/images/poop3.png",8)
+        self.number_of_frames = 8
+        self.sprite = makeSprite("media/images/poop3.png",self.number_of_frames)
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
-        self.pseudo_location_y = self.ypos + self.height
+        self.bottom = self.ypos + self.height
+        self.ground_position = self.bottom
         showSprite(self.sprite)
 
     def update_state(self, hero):
@@ -43,10 +43,11 @@ class Poop():
         changeSpriteImage(self.sprite,  0*8+self.frame) 
         
         # update bottom location coordinate for sprite drawing order
-        self.pseudo_location_y = self.ypos + self.height
+        self.bottom = self.ypos + self.height
+        self.ground_position = self.bottom
         
         # if collected by player
-        if self.sprite in allTouching(hero.sprite) and abs((hero.ypos + hero.sprite.rect.height)-(self.ypos + self.sprite.rect.height)) < 20 :
+        if self.sprite in allTouching(hero.sprite) and abs(hero.bottom - self.bottom) < 20 :
                 idle_sound.stop()
                 runing_sound.stop()
                 collect_sound.play()

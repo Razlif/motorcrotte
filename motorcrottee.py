@@ -14,7 +14,16 @@ import functions
 
 setAutoUpdate(False)
 
-
+def sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list,hero):
+    # Sort the sprites based on their bottom Y position
+    my_private_sprite_group = vehicle_list + sidewalk_element_list + poop_list
+    my_private_sprite_group.append(hero)  
+    layer_order = sorted(my_private_sprite_group, key=lambda sprite: sprite.ground_position)
+    
+    # Add the sprites back to the sprite group in the correct order
+    for i, sprite in enumerate(layer_order):
+        spriteGroup.change_layer(sprite.sprite, i)
+        
 # set screen
 screen = screenSize(settings.screen_size_x, settings.screen_size_y)
 
@@ -61,7 +70,7 @@ while True:
     collectibles.update_display(poop_list, hero)  # update the poop
     
     # sort the spriteGroup based on the y position of the bottom of each sprite
-    functions.sort_sprites_by_pseudo_location_y(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, hero)
+    sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list,hero)
         
     updateDisplay()
     tick(120)

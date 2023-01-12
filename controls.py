@@ -23,7 +23,7 @@ class Player():
         self.xdir = 0 # shooting direction
         self.ydir = 0 # currently unused
         self.jump = False
-        self.jump_size = 13 # the size of the jump in pixels
+        self.jump_size = 25 # the size of the jump in pixels
         self.jump_meter = self.jump_size # reset jump meter to jump size var
         self.dash = False
         self.dash_origin = 13
@@ -35,6 +35,7 @@ class Player():
         self.shoot = False
         self.special = False # change to other skins
         self.roof = False # when on roof
+        self.ground = True
         self.poop = 0
         
         # create sprite
@@ -56,7 +57,7 @@ class Player():
         self.number_of_frames = 2
         self.timeOfNextFrame = clock()
         self.lastBulletTime = clock()
-        self.previous_position = (self.xpos, self.ypos)
+        self.previous_position = [self.xpos, self.ypos]
         
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
@@ -70,7 +71,19 @@ class Player():
         if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
             self.frame = (self.frame + 1) % self.number_of_frames  # There are 8 frames of animation in each direction
             self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
+        self.previous_position = [self.xpos, self.ypos]
+        self.bottom = self.ypos + self.height
         
+        # update bottom location coordinate for sprite drawing order but not when hero is jumping
+        
+        if self.ground == True:
+            self.ground_position = self.bottom
+        else:
+            if self.bottom < self.ground_position:
+                self.ypos += settings.gravity
+            else:
+                self.ground = True
+                
         # GAS - ON / OFF
         if keyPressed("right"):
             self.gas = True
@@ -167,11 +180,10 @@ class Player():
                 showSprite(self.sprite)
         
         
-        # update bottom location coordinate for sprite drawing order but not when hero is jumping
-        self.bottom = self.ypos + self.height
+
+
+
         
-        if self.jump == False: # keep ground position same when jumping
-            self.ground_position = self.bottom
             
         # when gas
         if self.gas == True:  
@@ -226,16 +238,10 @@ class Player():
                                    
         # when jump    
         if self.jump == True:
-            if self.roof == False:
-                angle = -10
-                changeSpriteImage(self.sprite,0)   # switch to jump frame animation
-                transformSprite(self.sprite, angle , self.scale, hflip=False, vflip=False)
-                self.ypos -= self.jump_meter
-                self.jump_meter -= 0.5
-                if self.jump_meter < (self.jump_size*-1):
-                    self.jump = False
-                    self.jump_meter = self.jump_size
-            
+            self.ground = False
+            self.ypos -= self.jump_meter
+            self.jump = False
+             
                         
         
         # when dash
@@ -285,7 +291,8 @@ class Player():
             # keep X position boundries
             if self.xpos > 1200:
                 self.xpos = 1200
-            
+        
+        
         # update player position to new location
         moveSprite(self.sprite, self.xpos, self.ypos)
         

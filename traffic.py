@@ -90,8 +90,37 @@ class Car(Vehicle):
         # set base vars
         self.type = "car"
         
-        self.sprite, self.car_size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames, self.deceleration_on_player_collision = get_variation_details(self.type)
+        # number of rames to animate
+        self.number_of_frames = variation_data[self.type]["number_of_frames"]
         
+        self.deceleration_on_player_collision = settings.car_deceleration_on_player_collision
+        
+        # determine size
+        size_probability = random.randint(1,100)   
+        if size_probability < settings.max_precent_of_XL_cars:
+            self.size = "XL"
+            self.variation_number = random.randint(1, variation_data[self.type][self.size]["number_of_variations"])
+            
+        elif size_probability < settings.max_precent_of_L_cars:
+            self.size = "L"
+            self.variation_number = random.randint(1, variation_data[self.type][self.size]["number_of_variations"])
+            
+        else:
+            self.size = "Regular"
+            self.variation_number = random.randint(1, variation_data[self.type][self.size]["number_of_variations"])
+        
+        #set scale
+        self.scale = variation_data[self.type][self.size]["sprite_scale"][self.variation_number]
+        
+        #set speed
+        self.intial_speed = random.randint(variation_data[self.type][self.size]["initial_speed"][0],variation_data[self.type][self.size]["initial_speed"][1])
+        
+        #create the actual sprite
+        sprite_path = "media/images/cars/"+ self.size +"/car_"+ str(self.variation_number) +".png"
+        
+        self.sprite = makeSprite(sprite_path, self.number_of_frames)
+        
+        #inherint from main vehicle class
         super().__init__(self.sprite, self.scale, self.intial_speed)
 
 
@@ -103,13 +132,28 @@ class Scooter(Vehicle):
         # set base vars
         self.type = "scooter"
         
-        self.sprite, self.car_size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames, self.deceleration_on_player_collision = get_variation_details(self.type)
+        self.size = "small"
         
+        self.number_of_frames = variation_data[self.type]["number_of_frames"]
+        
+        self.deceleration_on_player_collision = settings.scooter_deceleration_on_player_collision
+        
+        self.variation_number = random.randint(1, variation_data[self.type][self.size]["number_of_variations"]) 
+        
+        self.scale = variation_data[self.type][self.size]["sprite_scale"]
+        
+        self.intial_speed = random.randint(variation_data[self.type][self.size]["initial_speed"][0],variation_data[self.type][self.size]["initial_speed"][1])
+        
+        sprite_path = "media/images/cars/bikes/"+str(self.variation_number)
+        self.sprite = makeSprite(sprite_path+"_1.png", 1)
+        for i in range(2,5):
+            addSpriteImage(self.sprite, sprite_path+"_"+str(i)+".png")
+            
         super().__init__(self.sprite, self.scale, self.intial_speed)
         
         
+        
  # moving and general interactions
-
 def update_state(vehicle, hero, bullets, vehicle_list):
     
     # rotate frames in modulu of 'frame number var' every 80 milisec
@@ -149,9 +193,9 @@ def update_state(vehicle, hero, bullets, vehicle_list):
             if vehicle.state != "overlap":  # if not in collision and between lanes - gravitate to closest lane
                 if settings.lane_2_top > vehicle.ground_position > settings.lane_1_bottom:
                     if abs(vehicle.ground_position - settings.lane_1_bottom) > abs(vehicle.ground_position -settings.lane_2_top) :
-                        vehicle.ypos += 0.1
+                        vehicle.ypos += settings.vehicle_y_adjustment
                     else:
-                        vehicle.ypos -= 0.1
+                        vehicle.ypos -= settings.vehicle_y_adjustment
             
     # when breaking    
     elif vehicle.breaking == True:
@@ -180,7 +224,7 @@ def update_state(vehicle, hero, bullets, vehicle_list):
     if vehicle.hit == False:
         changeSpriteImage(vehicle.sprite,  0*vehicle.number_of_frames + vehicle.frame) 
     else:
-        vehicle.speed_meter = vehicle.speed_meter * 0.95
+        vehicle.speed_meter = vehicle.speed_meter * vehicle.deceleration_on_player_collision
         
     
     
@@ -190,7 +234,7 @@ def update_state(vehicle, hero, bullets, vehicle_list):
         
     if hero.speed > settings.hero_speed_limit and vehicle.speed_meter > hero.speed * settings.cars_speed_limit:  # high speed boundry
         vehicle.speed_meter = hero.speed * settings.cars_speed_limit
-        
+    
     vehicle.xpos += vehicle.speed_meter * (random.randint(7,9)* 0.1)  # change  X position by speed meter
     vehicle.xpos += int(hero.speed)*-1   # adapt to background scroll
  
@@ -225,68 +269,6 @@ def when_hit(sprite, bullets):
                 
 
 
-
-# function to randomize variation selection and get variation details
-def get_variation_details(element_type):
-    if element_type == "car":
-        # determine car size
-        probability = random.randint(1,100)   
-        if probability < settings.max_precent_of_XL_cars:
-                size = "XL"
-                intial_speed = random.randint(4,8)
-                sprite_number = random.randint(18,20)   # determine exact variation and get it's variables
-                if sprite_number == 18:
-                    sprite_scale = 2.9
-                elif sprite_number == 19:
-                    sprite_scale = 2.5
-                else:
-                    sprite_scale = 2.25
-        elif probability < settings.max_precent_of_L_cars:
-            size = "L"
-            intial_speed = random.randint(5,10)
-            sprite_number = random.randint(12,17)   # determine exact variation and get it's variables
-            if sprite_number == 13:
-                sprite_scale = 2.5
-            else:
-                sprite_scale = 2
-        else:
-            sprite_number = random.randint(1,11)   # determine exact variation and get it's variables
-            if sprite_number < 2:
-                size = "special"   # special fast car
-                sprite_scale = 2.25
-                intial_speed = 20
-            else:
-                size = "regular"
-                intial_speed = random.randint(5,15)
-                if sprite_number < 7:
-                    sprite_scale = 2.25
-                elif sprite_number < 11:
-                    sprite_scale = 2.92
-                else:
-                    sprite_scale = 2.7
-        number_of_frames_to_animate = settings.car_number_of_frames_to_animate
-        sprite = makeSprite("media/images/cars/"+str(size)+"/car_"+str(sprite_number)+".png", number_of_frames_to_animate)
-        deceleration_on_player_collision = settings.car_deceleration_on_player_collision
-        
-    
-    else:
-        sprite_number = random.randint(1,19) 
-        sprite = makeSprite("media/images/cars/bikes/"+str(sprite_number)+"_1.png",1)
-        for i in range(2,5):
-            addSpriteImage(sprite, "media/images/cars/bikes/"+str(sprite_number)+"_"+str(i)+".png")
-        sprite_scale = 1.75
-        intial_speed = random.randint(10,20)
-        number_of_frames_to_animate = settings.scooter_number_of_frames_to_animate
-        deceleration_on_player_collision = settings.scooter_deceleration_on_player_collision
-        size = "small"
-    
-    
-    return sprite, size, sprite_number, sprite_scale, intial_speed, number_of_frames_to_animate, deceleration_on_player_collision
-
-
-
-
-
 # function to check for collision between non hero elements
 def check_for_collision(sprite1, sprite2):
 
@@ -318,11 +300,11 @@ def check_for_collision(sprite1, sprite2):
             car2.xpos += settings.front_x_adjustment_when_overlap
             car1.state = "overlap"
             if car1.ground_position > car2.ground_position:   # move cars away from each other
-                car1.ypos += settings.vehicle_y_adjustment_when_overlap
-                car2.ypos -= settings.vehicle_y_adjustment_when_overlap
+                car1.ypos += settings.vehicle_y_adjustment
+                car2.ypos -= settings.vehicle_y_adjustment
             else:
-                car1.ypos -= settings.vehicle_y_adjustment_when_overlap
-                car2.ypos += settings.vehicle_y_adjustment_when_overlap
+                car1.ypos -= settings.vehicle_y_adjustment
+                car2.ypos += settings.vehicle_y_adjustment
             
         else:
             car1.gas = True  # in case in front speed up a little
@@ -333,31 +315,80 @@ def check_for_collision(sprite1, sprite2):
         
 
 # vehicle.sprite in allTouching(hero.sprite) and
-
 def check_for_player_collision(sprite1, hero):
     vehicle = sprite1
     # Check if hero is within range of vehicle for collision
-    if abs((hero.ground_position) - (vehicle.ground_position)) < (hero.height * 0.2):
+    if abs((hero.ground_position) - (vehicle.ground_position)) < (hero.height * 0.2):        
         # Check if hero is touching vehicle
-        if vehicle.sprite in allTouching(hero.sprite):
-            # Set vehicle collision to True
-            vehicle.collision = True
-            
-            # Check if hero is on top of vehicle
-            if vehicle.ypos + 25 > hero.bottom:
-                hero.bottom = vehicle.ypos + 15
-                hero.ypos = hero.bottom - hero.height
-                hero.ground_position = vehicle.ground_position
-                hero.xpos += vehicle.speed_meter
-
-            else:
-                # Update hero's speed based on collision with vehicle
-                hero.speed = hero.speed * settings.car_deceleration_on_player_collision
-                # Move hero slightly up or down based on collision with vehicle
-                if hero.ground_position > vehicle.ground_position:
-                    hero.ypos += settings.move_hero_on_collision
-                else:
-                    hero.ypos -= settings.move_hero_on_collision
+        if hero.sprite in allTouching(vehicle.sprite):
+            #vehicle.collision = True
+            hero.ground_position = vehicle.ground_position
+            hero.xpos = hero.previous_position[0]
+            hero.ypos = hero.previous_position[1]
+        else:
+            # Set vehicle collision to False if hero is not touching car
+            vehicle.collision = False
+            #hero.roof = False
+    
     else:
         # Set vehicle collision to False if hero is not within range
         vehicle.collision = False
+        #hero.roof = False
+        
+
+
+variation_data = {
+    "scooter": {
+        "number_of_frames":4,
+        "small": {
+            "number_of_variations":19,
+            "initial_speed": [4, 8],
+            "sprite_scale": 1.75,
+            }
+        },
+    "car": {
+        "number_of_frames":2,
+        "XL": {
+            "number_of_variations":3,
+            "initial_speed": [4, 8],
+            "sprite_scale": {
+                1: 2.9,
+                2: 2.5,
+                3: 2.25
+            }
+        },
+        "L": {
+            "number_of_variations":6,
+            "initial_speed": [5, 10],
+            "sprite_scale": {
+                1: 2,
+                2: 2.5,
+                3: 2,
+                4: 2,
+                5: 2,
+                6: 2
+            }
+        },
+        "Regular": {
+            "number_of_variations":11,
+            "initial_speed": [5, 15],
+            "sprite_scale": {
+                1: 2.25,
+                2: 2.92,
+                3: 2.92,
+                4: 2.92,
+                5: 2.92,
+                6: 2.92,
+                7: 2.25,
+                8: 2.25,
+                9: 2.25,
+                10: 2.7,
+                11: 2.7
+            }
+        },
+        "special": {
+            "initial_speed": 20,
+            "sprite_scale": 2.25
+        }
+    }
+}  

@@ -11,6 +11,7 @@ screen_size_x = 1200
 
 screen_size_y = 550
 
+gravity = 10
 
 # poop settings
 
@@ -27,10 +28,6 @@ max_scooter_number = 3
 car_deceleration_on_player_collision = 0.8
 
 scooter_deceleration_on_player_collision = 0.9
-
-car_number_of_frames_to_animate = 2
-
-scooter_number_of_frames_to_animate = 4
 
 traffic_clear_distance = 500  # far enough in front or behind other vehicle
 
@@ -68,7 +65,7 @@ vehicle_slowdown_when_close_behind = 0.02
 
 vehicle_slowdown_when_overlap = 0.05
 
-vehicle_y_adjustment_when_overlap = 0.05  # move vehicle up or down when hitting another vehicle
+vehicle_y_adjustment = 0.05  # move vehicle up or down when hitting another vehicle
 
 front_x_adjustment_when_overlap = 0.3
 

@@ -10,7 +10,6 @@ import traffic as obstacles
 import sidewalk
 from sound_elements import *
 import game_configuration as settings
-import functions
 
 setAutoUpdate(False)
 

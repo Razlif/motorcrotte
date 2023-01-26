@@ -70,8 +70,8 @@ class Sidewalk_element():
         self.collision = False
         self.hit = False
         self.speed = intial_speed
-        self.bottom = self.ypos + self.height
-        self.ground_position = self.bottom
+        self.ground_position = self.sprite.rect.bottom
+        self.previous_position = self.sprite.rect.copy()
         
         # set speed meter to inital speed var
         self.speed_meter = self.speed
@@ -125,6 +125,9 @@ class Bicycle(Sidewalk_element):
 # moving and general interactions
 def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
     
+    self.ground_position = self.sprite.rect.bottom
+    self.previous_position = self.sprite.rect.copy()
+        
     # rotate frames in modulu of 'frame number var' every 80 milisec
     if clock() > sidewalk_element.timeOfNextFrame:  
         sidewalk_element.frame = (sidewalk_element.frame + 1) % sidewalk_element.number_of_frames 

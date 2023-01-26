@@ -16,14 +16,14 @@ bullets = []
 class Player():
     def __init__(self):
         # Reset intial Vars
-        self.xpos = 200
-        self.ypos = 250
+
+        self.y_velocity = 0
         self.speed = 0
         self.health = 100
         self.xdir = 0 # shooting direction
         self.ydir = 0 # currently unused
         self.jump = False
-        self.jump_size = 25 # the size of the jump in pixels
+        self.jump_size = 10 # the size of the jump in pixels
         self.jump_meter = self.jump_size # reset jump meter to jump size var
         self.dash = False
         self.dash_origin = 13
@@ -49,15 +49,16 @@ class Player():
         transformSprite(self.sprite, angle, self.scale , hflip=False, vflip=False)
         
         # addirional vars
+        self.sprite.rect.x = 200
+        self.sprite.rect.y = 250
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
-        self.bottom = self.ypos + self.height
-        self.ground_position = self.bottom
+        self.ground_position = self.sprite.rect.bottom
         self.frame = 0
         self.number_of_frames = 2
         self.timeOfNextFrame = clock()
         self.lastBulletTime = clock()
-        self.previous_position = [self.xpos, self.ypos]
+        self.previous_position = self.sprite.rect.copy()
         
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
@@ -68,21 +69,27 @@ class Player():
         
 
     def move(self):
+        
+        self.previous_position = self.sprite.rect.copy()
+        
         if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
             self.frame = (self.frame + 1) % self.number_of_frames  # There are 8 frames of animation in each direction
             self.timeOfNextFrame += 80  # so the modulus 8 allows it to loop
-        self.previous_position = [self.xpos, self.ypos]
-        self.bottom = self.ypos + self.height
         
         # update bottom location coordinate for sprite drawing order but not when hero is jumping
         
         if self.ground == True:
-            self.ground_position = self.bottom
+            self.ground_position = self.sprite.rect.bottom
+            self.y_velocity = 0
         else:
-            if self.bottom < self.ground_position:
-                self.ypos += settings.gravity
+            if self.sprite.rect.bottom < self.ground_position:
+                self.y_velocity += settings.gravity
+                self.sprite.rect.y += self.y_velocity
             else:
+                self.sprite.rect.bottom = self.ground_position 
+                self.y_velocity = 0
                 self.ground = True
+
                 
         # GAS - ON / OFF
         if keyPressed("right"):
@@ -199,8 +206,8 @@ class Player():
             idle_sound.play()
             if self.speed > 0:
                 self.speed -=0.03
-                if self.xpos > 100:   # if breaking while player position hogher than 100 player's position will move back on the screen
-                    self.xpos -= 4
+                if self.sprite.rect.x  > 100:   # if breaking while player position hogher than 100 player's position will move back on the screen
+                    self.sprite.rect.x  -= 4
                     changeSpriteImage(self.sprite,0)
                     angle = -5
                     transformSprite(self.sprite, angle , self.scale, hflip=False, vflip=False)
@@ -217,30 +224,33 @@ class Player():
         # when up
         if self.up == True:
             if self.jump == False:
-                self.ypos -= 1.5
-                if self.ypos < 290 and self.ypos > 275:  # skip the pavement when moving up the screen
-                    self.ypos = 275                  
+                self.sprite.rect.y  -= 1.5
+                if self.sprite.rect.y < 290 and self.sprite.rect.y > 275:  # skip the pavement when moving up the screen
+                    self.sprite.rect.y = 275                  
             else:
                 self.ground_position -= 1
-                self.ypos -= 1
+                self.sprite.rect.y -= 1
 
 
         # when down         
         if self.down == True:
             if self.jump == False:
-                self.ypos += 1.5
-                if self.ypos > 275 and self.ypos < 290:  # skip the pavement when moving down the screen
-                    self.ypos = 290                  
+                self.sprite.rect.y += 1.5
+                if self.sprite.rect.y > 275 and self.sprite.rect.y < 290:  # skip the pavement when moving down the screen
+                    self.sprite.rect.y = 290                  
             else:
                 self.ground_position += 1
-                self.ypos += 1
+                self.sprite.rect.y += 1
 
                                    
         # when jump    
         if self.jump == True:
             self.ground = False
-            self.ypos -= self.jump_meter
+            self.y_velocity -= self.jump_meter
+            self.sprite.rect.y += self.y_velocity
+            self.y_velocity = 0
             self.jump = False
+            
              
                         
         
@@ -256,7 +266,7 @@ class Player():
                 self.dash_meter = self.dash_origin
             else:
                 self.speed +=0.03   # increase speed when dash
-                self.xpos += self.dash_meter
+                self.sprite.rect.x += self.dash_meter
                 self.dash_meter -= 0.25
                 changeSpriteImage(self.sprite,0)   # switch to dash frame animation
                 angle = 5
@@ -271,7 +281,7 @@ class Player():
         # when shoot
         if self.shoot == True:
             if clock() > self.lastBulletTime + 240:   # limit shots to every 240 milisec
-                new_bullet = Bullet(self.xpos + 20, self.ypos + 20, self.xdir * 5, 0)
+                new_bullet = Bullet(self.sprite.rect.x + 20, self.sprite.rect.y + 20, self.xdir * 5, 0)
                 bullets.append(new_bullet)   # create a new bullet and append it to bullet list 
                 self.lastBulletTime = clock()
                 runing_sound.stop()
@@ -284,17 +294,17 @@ class Player():
         # Make sure player position is inside play boundries 
         if self.jump == False:
             # keep Y position boundries
-            if self. ypos + self.height > 560:
-                self.ypos = 560 - self.height
-            if self. ypos + self.height < 350:
-                self.ypos = 350 - self.height
+            if self.sprite.rect.y + self.height > 560:
+                self.sprite.rect.y = 560 - self.height
+            if self.sprite.rect.y + self.height < 350:
+                self.sprite.rect.y = 350 - self.height
             # keep X position boundries
-            if self.xpos > 1200:
-                self.xpos = 1200
+            if self.sprite.rect.x > 1200:
+                self.sprite.rect.x = 1200
         
         
         # update player position to new location
-        moveSprite(self.sprite, self.xpos, self.ypos)
+        moveSprite(self.sprite, self.sprite.rect.x, self.sprite.rect.y)
         
         # update bullet list
         for bullet in bullets:

@@ -9,21 +9,23 @@ impact_picture = pygame.image.load("media/images/poop.png")
 
 screen_size_x = 1200
 
-screen_size_y = 550
+screen_size_y = 686
 
-gravity = 10
+gravity = 0.5
 
 # poop settings
 
 max_poop_number = 3
 
-max_enemy_number = 1
+max_enemy_number = 3
+
+spawn_x_range = [1200,1600]
 
 # traffic settings
 
-max_car_number = 10
+max_car_number = 8
 
-max_scooter_number = 3
+max_scooter_number = 1
 
 car_deceleration_on_player_collision = 0.8
 
@@ -45,19 +47,27 @@ breaking_deceleration = 0.03  # deceleration when breaking
 
 natural_deceleration = 0.001
 
-lane_1_top = 440
+side_walk_top = 350
 
-lane_1_bottom = 465
+side_walk_bottom = 385
 
-lane_2_top = 520
+lane_1_top = 410
 
-lane_2_bottom = 540
+lane_1_bottom = 480
+
+lane_2_top = 490
+
+lane_2_bottom = 580
+
+lane_3_top = 600
+
+lane_3_bottom = 680
 
 cars_speed_limit = 1.25  # ratio to player's top speed
 
 max_precent_of_XL_cars = 15
 
-max_precent_of_L_cars = 45
+max_precent_of_L_cars = 35
 
 out_of_bounds_x = 2800
 
@@ -85,6 +95,20 @@ sidewalk_top = 380
 
 # hero settings
 
-hero_speed_limit = 20
+hero_top_speed = 20
 
 move_hero_on_collision  = 2  # move hero up or down when hitting a car
+
+hero_natural_deceleration = 0.005
+
+hero_breaking_angle = -5
+
+hero_move_back_on_break = 4
+
+hero_back_border = 100
+
+hero_break = 0.04
+
+hero_gas = 0.05
+
+hero_health = 100

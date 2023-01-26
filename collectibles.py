@@ -1,7 +1,7 @@
 from Pygame_Functions.pygame_functions import *
 import math, random
 from sound_elements import *
-import game_configuration
+import game_configuration as settings
 
 setAutoUpdate(False)
 
@@ -13,7 +13,7 @@ def update_display(poop_list, hero):
             poop_list.pop(i)
 
     
-    if len(poop_list) < game_configuration.max_poop_number:
+    if len(poop_list) < settings.max_poop_number:
         poop = Poop()
         poop_list.append(poop)
 
@@ -23,34 +23,32 @@ def update_display(poop_list, hero):
 # poop class
 class Poop():
     def __init__(self):
-        self.xpos = random.randint(3,5) * 400
-        self.ypos = random.randint(280,460) 
+        self.xpos = random.randint(settings.spawn_x_range[0],settings.spawn_x_range[1])
+        self.ypos = random.randint(settings.side_walk_top,settings.lane_3_bottom)
         self.frame = 0
         self.timeOfNextFrame = clock()
         self.number_of_frames = 8
         self.sprite = makeSprite("media/images/poop3.png",self.number_of_frames)
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
-        self.bottom = self.ypos + self.height
-        self.ground_position = self.bottom
+        self.ground_position = self.sprite.rect.bottom
         showSprite(self.sprite)
 
     def update_state(self, hero):
-        if clock() > self.timeOfNextFrame:  
-            self.frame = (self.frame + 1) % 8  
-            self.timeOfNextFrame += 80  
-        changeSpriteImage(self.sprite,  0*8+self.frame) 
         
-        # update bottom location coordinate for sprite drawing order
-        self.bottom = self.ypos + self.height
-        self.ground_position = self.bottom
+        self.ground_position = self.sprite.rect.bottom
+        
+        if clock() > self.timeOfNextFrame:  
+            self.frame = (self.frame + 1) % self.number_of_frames  
+            self.timeOfNextFrame += 80  
+        changeSpriteImage(self.sprite,  self.frame) 
         
         # if collected by player
-        if self.sprite in allTouching(hero.sprite) and abs(hero.bottom - self.bottom) < 20 :
+        if self.sprite in allTouching(hero.sprite) and abs(hero.sprite.rect.bottom - self.sprite.rect.bottom) < 20 :
                 idle_sound.stop()
                 runing_sound.stop()
                 collect_sound.play()
-                hero.poop += 1
+                hero.poop += 10
                 killSprite(self.sprite)
                 return False
         
@@ -59,6 +57,6 @@ class Poop():
             return False
         
         else:
-            self.xpos += int(hero.speed)*-1   # just hang around
+            self.xpos += int(hero.x_velocity)*-1   # just hang around
             moveSprite(self.sprite, self.xpos, self.ypos)
             return True

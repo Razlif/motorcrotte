@@ -50,9 +50,12 @@ class Enemy():
         self.max_speed = 0
         
         # create sprite
-        self.sprite = makeSprite("media/images/cars/bikes/5_1.png",1) 
+        self.sprite = makeSprite("media/images/enemies/basicEnemy_1.png",1) 
         for i in range(2,5):
-            addSpriteImage(self.sprite, "media/images/cars/bikes/5_"+str(i)+".png")
+            addSpriteImage(self.sprite, "media/images/enemies/basicEnemy_"+str(i)+".png")
+        
+        addSpriteImage(self.sprite, "media/images/enemies/front_attack.png")
+        addSpriteImage(self.sprite, "media/images/enemies/back_attack.png")
         
         # sclae to correct size
         self.scale = 1.85
@@ -172,12 +175,6 @@ def update_state(enemy, hero, bullets):
     enemy.sprite.rect.x += enemy.x_velocity  # change  X position by speed meter
     enemy.sprite.rect.x += int(hero.x_velocity)*-1   # adapt to background scroll
     
-    if abs((hero.ground_position) - (enemy.ground_position)) < (hero.height * 0.2) and enemy.sprite in allTouching(hero.sprite):
-        if hero.dash == True:
-            transformSprite(enemy.sprite, 0 , enemy.scale, hflip=False, vflip=True)
-            enemy.hit = True
-        else:
-            hero.health -= enemy.x_velocity*0.01
     
     for bullet in bullets:
         if bullet.sprite in allTouching(enemy.sprite) and abs((bullet.ground_position)-(enemy.ground_position)) < (enemy.height*0.2):
@@ -192,7 +189,13 @@ def update_state(enemy, hero, bullets):
         changeSpriteImage(enemy.sprite,  enemy.frame)
         if enemy.x_velocity < 0 or enemy.gas == False:
             transformSprite(enemy.sprite, 0 , enemy.scale, hflip=True, vflip=False)
-
+    
+    if abs((hero.ground_position) - (enemy.ground_position)) < (hero.height * 0.25) and enemy.sprite in allTouching(hero.sprite):
+        if hero.dash == True:
+            transformSprite(enemy.sprite, 0 , enemy.scale, hflip=False, vflip=True)
+            enemy.hit = True
+        else:
+            changeSpriteImage(enemy.sprite,-2)
         
             # keep Y position boundries
     if enemy.sprite.rect.bottom > settings.lane_3_bottom:

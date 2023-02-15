@@ -25,7 +25,7 @@ class Player():
         self.xdir = 1 # shooting direction
         self.ydir = 0 # currently unused
         self.jump = False
-        self.jump_size = 3 # the size of the jump in pixels
+        self.jump_size = 15 # the size of the jump in pixels
         self.jump_meter = self.jump_size # reset jump meter to jump size var
         self.dash = False
         self.dash_origin = 13
@@ -37,6 +37,7 @@ class Player():
         self.shoot = False
         self.ground = True
         self.poop = 0
+        self.obstacle = False
         
         
         # create sprite
@@ -124,8 +125,9 @@ class Player():
             self.down = False
         
         #JUMP
-        if keyPressed("q") and self.jump == False:
-            self.jump = True
+        if keyPressed("q"):
+            if self.ground == True or self.obstacle == True:
+                self.jump = True
 
         
         #DASH
@@ -173,30 +175,28 @@ class Player():
         
         # when up
         if self.up == True:
-            if self.ground == True:
-                self.sprite.rect.y  -= 1.5                
-            else:
-                self.sprite.rect.y -= 1
-                self.ground_position -= 1
+            self.sprite.rect.bottom -= 1.5
+            if self.ground == False:
+                self.ground_position -= 1.5
                 
 
 
         # when down         
         if self.down == True:
-            if self.ground == True:
-                self.sprite.rect.y += 1.5                 
-            else:
-                self.sprite.rect.y += 1
-                self.ground_position += 1
+            self.sprite.rect.bottom += 1.5
+            if self.ground == False:
+                self.ground_position += 1.5
                 
 
         # when jump    
         if self.jump == True:
+            self.ground = False
             changeSpriteImage(self.sprite, self.frame)
             transformSprite(self.sprite, -45, self.scale, hflip=False, vflip=False)
             self.y_velocity -= self.jump_size
             self.jump = False
-            self.ground = False
+
+            
             
 
             
@@ -210,7 +210,7 @@ class Player():
                 self.dash_meter -= 0.25
                 angle = 25
                 transformSprite(self.sprite, angle, self.scale, hflip=False, vflip=False)
-            if self.dash_meter < (self.dash_origin*-1):
+            if self.dash_meter < (self.dash_origin*-0.25):
                 self.dash = False
                 self.dash_meter = self.dash_origin
             else:

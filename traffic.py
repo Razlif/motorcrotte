@@ -3,6 +3,8 @@ import math, random
 from sound_elements import *
 import game_configuration as settings
 
+
+
 setAutoUpdate(False)
 
 

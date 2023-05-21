@@ -9,41 +9,44 @@ import game_configuration as settings
 setAutoUpdate(False)
 
 
-# function to update display on main loop
-def update_display(enemy_list, hero):
+def update_display(enemy_list, hero, bullets):
+    spawn_enemies(enemy_list)
+    new_enemy_list = []
+    for enemy in enemy_list:
+        if update_state(enemy, hero, bullets) != False:
+            new_enemy_list.append(enemy)
+    enemy_list[:] = new_enemy_list
+
+
+def update_display_2(enemy_list, hero, bullets):
     spawn_enemies(enemy_list)
     for i, enemy in enumerate(enemy_list):
-        if update_state(enemy, hero) == False:
+        if update_state(enemy, hero, bullets) == False:
             enemy_list.pop(i)
 
-    
-    
-    
-# function to spawn the enemies
-def spawn_enemies(enemy_list):
 
-    if len(enemy_list) < settings.max_enemy_number:   # if cars are under the max number make new car and append to list
-        enemy = Basic_enemy()
+
+def spawn_enemies(enemy_list):
+    if len(enemy_list) < settings.max_enemy_number:  # if cars are under the max number, make new car and append to the list
+        enemy_type = random.choice(["simple", "advanced"])
+        if enemy_type == "simple":
+            enemy = SimpleEnemy()
+        else:
+            enemy = SimpleEnemy()
         enemy_list.append(enemy)
 
-        
 # enemy class
 class Enemy():
     def __init__(self):
         # Reset intial Vars
-        self.xpos = 400
-        self.ypos = 400
-        self.speed = 0
+
+        self.x_velocity = 0
         self.health = 100
         self.xdir = 0 # shooting direction
         self.ydir = 0 # currently unused
         self.jump = False
         self.jump_size = 13 # the size of the jump in pixels
         self.jump_meter = self.jump_size # reset jump meter to jump size var
-        self.roof = False
-        self.bounce = False
-        self.bounce_size = 15 # the size of the jump in pixels
-        self.bounce_meter = self.bounce_size # reset jump meter to jump size var
         self.dash = False
         self.dash_origin = 13
         self.dash_meter = self.dash_origin
@@ -52,183 +55,179 @@ class Enemy():
         self.up = False
         self.down = False
         self.shoot = False
-        self.special = False
-        self.poop = 0
         self.max_speed = 0
         
         # create sprite
-        self.sprite = makeSprite("media/images/cars/bikes/5_1.png",1) 
+        self.sprite = makeSprite("media/images/enemies/basicEnemy_1.png",1) 
         for i in range(2,5):
-            addSpriteImage(self.sprite, "media/images/cars/bikes/5_"+str(i)+".png")
+            addSpriteImage(self.sprite, "media/images/enemies/basicEnemy_"+str(i)+".png")
+        
+        addSpriteImage(self.sprite, "media/images/enemies/front_attack.png")
+        addSpriteImage(self.sprite, "media/images/enemies/back_attack.png")
         
         # sclae to correct size
-        self.scale = 1.75
+        self.scale = 1.85
         angle = 0
         transformSprite(self.sprite, angle, self.scale , hflip=False, vflip=False)
+        self.sprite.rect.x = 1400
+        self.sprite.rect.y = 400
         
         # addirional vars
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
-        self.pseudo_location_y = self.ypos + self.height
+        self.ground_position = self.sprite.rect.bottom
         self.frame = 0
-        self.number_of_frames_to_animate = 4
+        self.number_of_frames = 4
         self.timeOfNextFrame = clock()
         self.lastBulletTime = clock()
-        self.pseudo_location_y = self.ypos + self.height
         self.state = "neutral"
-        self.previous_position = (self.xpos, self.ypos)
+        self.previous_position = (self.sprite.rect.x, self.sprite.rect.y)
+        self.ground = True
+        self.hit = False
         
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
-        
-class Basic_enemy(Enemy):
+
+
+class SimpleEnemy(Enemy):
     def __init__(self):
         super().__init__()
-        self.type = "basic_enemy"
+        self.type = 'simple'
+
+    def update_behavior(self, hero, bullets):
+        distance = math.sqrt((hero.sprite.rect.x - self.sprite.rect.x)**2 + (hero.sprite.rect.y - self.sprite.rect.y)**2)
+
+        if distance > 250:
+            self.state = "attack"
+        else:
+            self.state = "attack"
         
+        if self.state == "attack":
+            if hero.ground_position > self.ground_position:
+                self.up = False
+                self.down = True
+            else:
+                self.down = False
+                self.up = True
+            
+            if hero.sprite.rect.x + hero.width > self.sprite.rect.x + self.width:
+                self.gas = True
+            else:
+                self.gas = False
+
+        # Update the SimpleEnemy position based on the state
+        self.update_position(hero)
+
+        return True
+
+    def update_position(self, hero):
+        if self.gas == True:  
+            self.x_velocity += 0.3    
+        else:
+            self.x_velocity -= 0.5
+        
+        if self.up == True:
+            self.sprite.rect.y -= 1
+        
+        if self.down == True:
+            self.sprite.rect.y += 1
+        
+        if self.x_velocity > hero.x_velocity * 2 and hero.x_velocity > 1:
+            self.x_velocity = hero.x_velocity * 2
+        
+        # Move
+        self.sprite.rect.x += self.x_velocity
+        self.sprite.rect.x += int(hero.x_velocity) * -1
+
+        # Keep Y position boundaries
+        if self.sprite.rect.bottom > settings.lane_3_bottom:
+            self.sprite.rect.bottom = settings.lane_3_bottom
+        if self.sprite.rect.bottom  < settings.side_walk_top:
+            self.sprite.rect.bottom = settings.side_walk_top
+
+
+
+class AdvancedEnemy(Enemy):
+    def __init__(self):
+        self.type = "advanced_enemy"
+        self.attack_distance = 150
+        self.safety_distance = 100
+        self.attack_cooldown = 2000
+        self.last_attack_time = 0
+        self.angular_velocity = 1  # Controls the speed of circling
+        super().__init__()
+
+        # Increase max_speed for better pursuit
+        self.max_speed = 20
+
+    def update_behavior(self, hero, bullets):
+        distance = math.sqrt((hero.sprite.rect.x - self.sprite.rect.x) ** 2 + (hero.sprite.rect.y - self.sprite.rect.y) ** 2)
+
+        if distance > self.safety_distance:
+            angle = math.atan2(hero.sprite.rect.y - self.sprite.rect.y, hero.sprite.rect.x - self.sprite.rect.x)
+            self.x_velocity = min(distance / 5, self.max_speed)
+            self.sprite.rect.x += self.x_velocity * math.cos(angle)
+            self.sprite.rect.y += self.x_velocity * math.sin(angle)
+        else:
+            angle_to_hero = math.atan2(hero.sprite.rect.y - self.sprite.rect.y, hero.sprite.rect.x - self.sprite.rect.x)
+            circle_angle = angle_to_hero + self.angular_velocity
+            self.sprite.rect.x = hero.sprite.rect.x + self.safety_distance * math.cos(circle_angle) - self.sprite.rect.width // 2
+            self.sprite.rect.y = hero.sprite.rect.y + self.safety_distance * math.sin(circle_angle) - self.sprite.rect.height // 2
+
+        if distance < self.attack_distance and clock() - self.last_attack_time > self.attack_cooldown:
+            self.attack(hero)
+            self.last_attack_time = clock()
+
+
+        def attack(self, hero):
+            # Implement the attack logic here
+            pass
+
+        def update(self, hero, bullets):
+            super().update(hero, bullets)
+            self.update_behavior(hero, bullets)
+
+
+
+def update_state(enemy, hero, bullets):
+    # Common updates for all enemy types
     
-def update_state(enemy, hero):
-        # rotate frames in modulu of 'frame number var' every 80 milisec
+    # Rotate frames in modulu of 'frame number var' every 80 milliseconds
     if clock() > enemy.timeOfNextFrame:  
-        enemy.frame = (enemy.frame + 1) % enemy.number_of_frames_to_animate  
+        enemy.frame = (enemy.frame + 1) % enemy.number_of_frames 
         enemy.timeOfNextFrame += 80
     
-    # update bottom location coordinate for sprite drawing order
-    enemy.pseudo_location_y = enemy.ypos + enemy.height
+    # Update bottom location coordinate for sprite drawing order
+    enemy.ground_position = enemy.sprite.rect.bottom
     
-    distance = math.sqrt((hero.xpos - enemy.xpos)**2 + (hero.ypos - enemy.ypos)**2)
-
-    # Check if hero is moving towards enemy
-    hero_towards_enemy = hero.previous_position[0] < hero.xpos and hero.xpos < enemy.xpos or hero.previous_position[0] > hero.xpos and hero.xpos > enemy.xpos
-
-    # Check if enemy is moving towards hero
-    enemy_towards_hero = enemy.previous_position[0] < enemy.xpos and enemy.xpos < hero.xpos or enemy.previous_position[0] > enemy.xpos and enemy.xpos > hero.xpos
-
-
-    if distance > 250:
-        enemy.state = "attack"
+    # Check for bullet impact
+    for bullet in bullets:
+        if bullet.sprite in allTouching(enemy.sprite) and abs((bullet.ground_position)-(enemy.ground_position)) < (enemy.height*0.2):
+            if bullet.impact == False:
+                enemy.hit = True
+                enemy.sprite.image.blit(settings.impact_picture, (0, 0))
+                killSprite(bullet.sprite)
+    
+    if enemy.hit == True:
+        enemy.x_velocity = 0
     else:
-        # Update state based on movement
-        if hero_towards_enemy:
-            enemy.state = "neutral"
-        elif enemy_towards_hero:
-            enemy.state = "attack"
+        changeSpriteImage(enemy.sprite,  enemy.frame)
+        if enemy.x_velocity < 0 or enemy.gas == False:
+            transformSprite(enemy.sprite, 0 , enemy.scale, hflip=True, vflip=False)
+
+    if abs((hero.ground_position) - (enemy.ground_position)) < (hero.height * 0.25) and enemy.sprite in allTouching(hero.sprite):
+        if hero.dash == True:
+            transformSprite(enemy.sprite, 0 , enemy.scale, hflip=False, vflip=True)
+            enemy.hit = True
         else:
-            enemy.state = "attack"
+            changeSpriteImage(enemy.sprite,-2)
+
+    # Check if the enemy is out of bounds
+    if enemy.sprite.rect.x - hero.sprite.rect.x > settings.out_of_bounds_x or enemy.sprite.rect.x - hero.sprite.rect.x < settings.out_of_bounds_x * -1:
+        killSprite(enemy.sprite)
+        return False
     
-    if enemy.state == "attack":
-        if hero.pseudo_location_y > enemy.pseudo_location_y:
-            enemy.up = False
-            enemy.down = True
-        else:
-            enemy.down = False
-            enemy.up = True
-        
-        if hero.xpos + hero.width > enemy.xpos + enemy.width:
-            enemy.gas = True
-        else:
-            enemy.gas = False
+    # Call the specific update_behavior method for each enemy type
+    result = enemy.update_behavior(hero, bullets)
     
-    elif enemy.state == "defense":
-        if hero.pseudo_location_y > enemy.pseudo_location_y:
-            enemy.up = True
-            enemy.down = False
-        else:
-            enemy.down = True
-            enemy.up = False
-        
-        if hero.xpos + hero.width > enemy.xpos + enemy.width:
-            enemy.gas = False
-        else:
-            enemy.gas = True
-    else:
-        enemy.speed = hero.speed *  random.randint(8,15) * 0.1
-
-        
-
-            
-            
-        # when gas
-    if enemy.gas == True:  
-        changeSpriteImage(enemy.sprite,  0*enemy.number_of_frames_to_animate+enemy.frame)    
-        enemy.speed +=0.3    
-        # when idle
-    else:
-        enemy.speed -=0.5
-        changeSpriteImage(enemy.sprite,  0*enemy.number_of_frames_to_animate+enemy.frame)
-        transformSprite(enemy.sprite, 0, enemy.scale , hflip=True, vflip=False)
-        
-        
-        # when up
-    if enemy.up == True:
-        enemy.ypos -= 1
-        if enemy.ypos < 290 and enemy.ypos > 275:  # skip the pavement when moving up the screen
-            enemy.ypos = 275                  
-
-
-
-        # when down         
-    if enemy.down == True:
-        enemy.ypos += 1
-        if enemy.ypos > 275 and enemy.ypos < 290:  # skip the pavement when moving down the screen
-            enemy.ypos = 290                  
-
-
-    # move
-    enemy.xpos += enemy.speed * (random.randint(7,9)* 0.1)  # change  X position by speed meter
-    enemy.xpos += int(hero.speed)*-1   # adapt to background scroll
-    
-    if enemy.sprite in allTouching(hero.sprite):
-        if hero.pseudo_location_y > enemy.pseudo_location_y:
-            enemy.ypos -= 25
-        else:
-            enemy.ypos += 25
-
-            # keep Y position boundries
-    if enemy.ypos + enemy.height > 560:
-        enemy.ypos = 560 - enemy.height
-    if enemy.ypos + enemy.height < 350:
-        enemy.ypos = 350 - enemy.height
-            
-            # keep X position boundries
-    if enemy.xpos > 1200:
-        enemy.xpos = 1200
-
-
-                
-    # update actual postiion on screen
-    moveSprite(enemy.sprite, enemy.xpos, enemy.ypos)
-    
-    # Store previous position of hero and enemy
-    hero.previous_position = (hero.xpos, hero.ypos)
-    enemy.previous_position = (enemy.xpos, enemy.ypos)
-
-
-
-
-
-def update_enemy_movement(enemy, hero):
-    
-    # rotate frames in modulu of 'frame number var' every 80 milisec
-    if clock() > enemy.timeOfNextFrame:  
-        enemy.frame = (enemy.frame + 1) % enemy.number_of_frames_to_animate  
-        enemy.timeOfNextFrame += 80
-    
-    # update bottom location coordinate for sprite drawing order
-    enemy.pseudo_location_y = enemy.ypos + enemy.height
-    enemy.max_speed = 0.5 
- 
- 
-    # Calculate distance between enemy and hero
-    distance = math.sqrt((hero.xpos - enemy.xpos)**2 + (hero.ypos - enemy.ypos)**2)
-    # Calculate angle between enemy and hero
-    angle = math.atan2(hero.ypos - enemy.ypos, hero.xpos - enemy.xpos)
-    # Calculate speed based on distance to hero
-    enemy.speed = min(distance / 10, enemy.max_speed)
-    # Update enemy's position based on speed and angle
-    enemy.xpos += enemy.speed * math.cos(angle)
-    enemy.ypos += enemy.speed * math.sin(angle)
-
-
-    # update actual postiion on screen
-    moveSprite(enemy.sprite, enemy.xpos, enemy.ypos)
+    return result

@@ -2,7 +2,6 @@ from Pygame_Functions.pygame_functions import *
 import math, random
 from sound_elements import *
 import game_configuration as settings
-import functions
 
 setAutoUpdate(False)
 
@@ -71,7 +70,9 @@ class Sidewalk_element():
         self.collision = False
         self.hit = False
         self.speed = intial_speed
-        self.pseudo_location_y = self.ypos + self.height
+        self.ground_position = self.sprite.rect.bottom
+        self.previous_position = self.sprite.rect.copy()
+        
         # set speed meter to inital speed var
         self.speed_meter = self.speed
         
@@ -90,7 +91,7 @@ class Dog(Sidewalk_element):
         # set base vars
         self.type = "dog"
         
-        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames_to_animate, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
+        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
         
         super().__init__(self.sprite, self.scale, self.intial_speed)
 
@@ -103,7 +104,7 @@ class Person(Sidewalk_element):
         # set base vars
         self.type = "person"
         
-        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames_to_animate, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
+        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
         
         super().__init__(self.sprite, self.scale, self.intial_speed)
         
@@ -115,7 +116,7 @@ class Bicycle(Sidewalk_element):
         # set base vars
         self.type = "bicycle"
         
-        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames_to_animate, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
+        self.sprite, self.size, self.sprite_number, self.scale, self.intial_speed, self.number_of_frames, self.deceleration_on_player_collision = functions.get_variation_details(self.type)
         
         super().__init__(self.sprite, self.scale, self.intial_speed)
         
@@ -124,13 +125,17 @@ class Bicycle(Sidewalk_element):
 # moving and general interactions
 def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
     
+    self.ground_position = self.sprite.rect.bottom
+    self.previous_position = self.sprite.rect.copy()
+        
     # rotate frames in modulu of 'frame number var' every 80 milisec
     if clock() > sidewalk_element.timeOfNextFrame:  
-        sidewalk_element.frame = (sidewalk_element.frame + 1) % sidewalk_element.number_of_frames_to_animate  
+        sidewalk_element.frame = (sidewalk_element.frame + 1) % sidewalk_element.number_of_frames 
         sidewalk_element.timeOfNextFrame += 80
     
     # update bottom location coordinate for sprite drawing order
-    sidewalk_element.pseudo_location_y = sidewalk_element.ypos + sidewalk_element.height
+    sidewalk_element.bottom = sidewalk_element.ypos + sidewalk_element.height
+    sidewalk_element.ground_position = sidewalk_element.bottom
         
     # in case of collision with player        
     collision = functions.check_for_player_collision(sidewalk_element, hero)
@@ -148,11 +153,11 @@ def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
     # when in collision with player status 
     if sidewalk_element.collision == True:
         sidewalk_element.breaking = True
-        runing_sound.stop()
-        idle_sound.play()
+        #runing_sound.stop()
+        #idle_sound.play()
         
     if sidewalk_element.hit == False:
-        changeSpriteImage(sidewalk_element.sprite,  0*sidewalk_element.number_of_frames_to_animate + sidewalk_element.frame) 
+        changeSpriteImage(sidewalk_element.sprite,  0*sidewalk_element.number_of_frames + sidewalk_element.frame) 
     else:
         sidewalk_element.speed_meter = sidewalk_element.speed_meter * 0.95
         
@@ -185,9 +190,9 @@ def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
 
  
     # keep Y position boundries
-    if sidewalk_element.pseudo_location_y < settings.sidewalk_bottom:
+    if sidewalk_element.ground_position < settings.sidewalk_bottom:
         sidewalk_element.ypos = settings.sidewalk_bottom + sidewalk_element.height
-    if sidewalk_element.pseudo_location_y > settings.sidewalk_top:
+    if sidewalk_element.ground_position > settings.sidewalk_top:
         sidewalk_element.ypos = settings.sidewalk_top - sidewalk_element.height
         
         
@@ -198,3 +203,142 @@ def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
 
     # update actual postiion on screen
     moveSprite(sidewalk_element.sprite, sidewalk_element.xpos, sidewalk_element.ypos)
+
+
+# to update bullet impact on different elements
+def when_hit(sprite, bullets):
+    for bullet in bullets:
+        if sprite.sprite in allTouching(bullet.sprite):
+            if bullet.impact == False:
+                sprite.hit = True
+                hit_position_x = random.randint(65,150)
+                hit_position_y = random.randint(0,20)
+                sprite.sprite.image.blit(impact_picture, (hit_position_x, hit_position_y)) 
+                killSprite(bullet.sprite)
+                
+
+
+
+# function to randomize variation selection and get variation details
+def get_variation_details(element_type):
+    if element_type == "dog":
+        number_of_frames_to_animate = 9
+        intial_speed = 1
+        sprite_number= random.randint(1,6)
+        if sprite_number ==2 or sprite_number == 6:
+            sprite_scale = 1.7
+        elif sprite_number == 4 or sprite_number == 5:
+            sprite_scale = 1.2
+        else:
+            sprite_scale = 1.4
+        sprite = makeSprite("media/images/dogs/dog_"+ str(sprite_number)+".png",number_of_frames_to_animate)
+        deceleration_on_player_collision = 0.5
+        size = "small"
+
+    
+    elif element_type == "person":
+        intial_speed = random.randint(1,2)
+        sprite_number = random.randint(5,7)        
+        if sprite_number == 5:
+            number_of_frames_to_animate = 9
+            sprite_scale = 1.6
+        elif sprite_number == 6:
+            number_of_frames_to_animate = 6
+            sprite_scale = 0.5
+        else:
+            number_of_frames_to_animate = 19
+            sprite_scale = 1.5
+        sprite = makeSprite("media/images/people/person"+ str(sprite_number)+".png",number_of_frames_to_animate)
+        deceleration_on_player_collision = 0.5
+        size = "small"
+
+    else: # in case of bicycle
+        sprite_number = 1
+        intial_speed = random.randint(2,3)
+        number_of_frames_to_animate = 4
+        sprite_scale = 1
+        sprite = makeSprite("media/images/bicycle_flip.png",number_of_frames_to_animate)
+        deceleration_on_player_collision = 0.5
+        size = "small"
+
+    return sprite, size, sprite_number, sprite_scale, intial_speed, number_of_frames_to_animate, deceleration_on_player_collision
+
+
+
+
+
+# function to check for collision between non hero elements
+def check_for_collision(sprite1, sprite2):
+        
+    if abs((sprite1.pseudo_location_y)-(sprite2.pseudo_location_y)) < (sprite1.height*0.5):  # in possible range for collision
+        if sprite1.xpos+sprite1.width < sprite2.xpos - settings.traffic_clear_distance or sprite1.xpos > sprite2.xpos+car2.width + settings.traffic_clear_distance:             
+            # far enough back or front
+            sprite1.gas = True
+            sprite1.state = "default"
+            
+        elif sprite1.xpos+sprite1.width < sprite2.xpos - settings.behind_distance:
+            # getting close to car in front           
+            if sprite1.speed_meter > sprite2.speed_meter:
+                sprite1.breaking = True
+            sprite1.state = "behind"
+            
+        elif sprite1.xpos+sprite1.width < sprite2.xpos - settings.close_behind_distance:
+            # getting very close to car in front
+            sprite1.breaking = True
+            sprite1.speed_meter -= sprite1.speed_meter * settings.vehicle_slowdown_when_close_behind
+            sprite1.state = "close behind"
+            
+        elif sprite1.xpos + sprite1.width < sprite2.xpos + sprite2.width:
+            # overlapping with car in front
+            sprite1.breaking = True
+            sprite1.speed_meter -= sprite1.speed_meter * settings.vehicle_slowdown_when_overlap
+            sprite2.xpos += settings.front_x_adjustment_when_overlap
+            sprite1.state = "overlap"
+            if sprite1.pseudo_location_y > sprite2.pseudo_location_y:   # move cars away from each other
+                sprite1.ypos += settings.vehicle_y_adjustment_when_overlap
+                sprite2.ypos -= settings.vehicle_y_adjustment_when_overlap
+            else:
+                sprite1.ypos -= settings.vehicle_y_adjustment_when_overlap
+                sprite2.ypos += settings.vehicle_y_adjustment_when_overlap
+            
+        else:
+            sprite1.gas = True  # in case in front speed up a little
+            sprite1.state = "in front"
+            sprite1.speed_meter += sprite1.speed_meter * settings.front_car_acceleration
+
+
+        
+
+# vehicle.sprite in allTouching(hero.sprite) and
+
+# function to check for collision with hero
+def check_for_player_collision(sprite1, hero):
+            
+    if sprite1.type == "dog":
+        dog = sprite1
+        if dog.sprite in allTouching(hero.sprite) and abs((hero.pseudo_location_y)-(dog.pseudo_location_y)) < 5 and hero.jump==False:
+            hero.speed = hero.speed * 0.5
+            if hero.pseudo_location_y > dog.pseudo_location_y:
+                dog.ypos -= 1
+            else:
+                dog.ypos += 1
+        
+    elif sprite1.type == "person":
+        person = sprite1
+        if person.sprite in allTouching(hero.sprite) and abs((hero.pseudo_location_y)-(person.ypos + person.pseudo_location_y)) < 5 and hero.jump==False:
+            hero.speed = hero.speed * 0.5
+            if hero.pseudo_location_y > person.pseudo_location_y:
+                person.ypos -= 1
+            else:
+                person.ypos += 1
+
+    else:
+        bicycle = sprite1
+        if bicycle.sprite in allTouching(hero.sprite) and abs((hero.pseudo_location_y)-(bicycle.pseudo_location_y)) < 5 and hero.jump==False:
+            hero.speed = hero.speed * 0.5
+            if hero.pseudo_location_y > bicycle.pseudo_location_y:
+                bicycle.ypos -= 1
+            else:
+                bicycle.ypos += 1
+
+

@@ -147,15 +147,15 @@ class Player():
         # when gas
         if self.gas == True:
             changeSpriteImage(self.sprite, self.frame)
-            idle_sound.stop()
-            runing_sound.play()   
+            #idle_sound.stop()
+            #runing_sound.play()   
             if self.x_velocity < settings.hero_top_speed:  # speed limit - but can be exceeded using the DASH move 
                 self.x_velocity += settings.hero_gas
         
         # when break
         elif self.breaking == True:  
-            runing_sound.stop()
-            idle_sound.play()
+            #runing_sound.stop()
+            #idle_sound.play()
             if self.x_velocity > 0:
                 self.x_velocity -= settings.hero_break
                 if self.sprite.rect.x  > settings.hero_back_border:   # if breaking while player position hogher than 100 player's position will move back on the screen
@@ -169,8 +169,8 @@ class Player():
             changeSpriteImage(self.sprite, self.frame)
             if self.x_velocity > 0:
                 self.x_velocity -= settings.hero_natural_deceleration  # natural deceleration 
-                runing_sound.stop()
-                idle_sound.play()
+                #runing_sound.stop()
+                #idle_sound.play()
         
         
         # when up
@@ -229,9 +229,9 @@ class Player():
                 new_bullet = Bullet(self.sprite.rect.x + 20, self.sprite.rect.y + 20, self.xdir * 5, 0, self)
                 bullets.append(new_bullet)   # create a new bullet and append it to bullet list 
                 self.lastBulletTime = clock()
-                runing_sound.stop()
-                idle_sound.stop()
-                shoot_sound.play()
+                #runing_sound.stop()
+                #idle_sound.stop()
+                #shoot_sound.play()
                 self.poop -= 1
                 
         
@@ -285,12 +285,14 @@ class Bullet():
         self.xspeed = xspeed
         self.damage = 0
         self.impact = False
-        self.sprite = makeSprite("media/images/poop2.png")
-        addSpriteImage(self.sprite, "media/images/poop.png")
+        self.sprite = makeSprite("media/images/poopfly.png")
+        addSpriteImage(self.sprite, "media/images/poopimpact.png")
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
         self.bottom = self.ypos + self.height
         self.ground_position = hero.ground_position
+        self.angle = 0
+        self.scale = 0.5
         showSprite(self.sprite)
         
 
@@ -299,6 +301,8 @@ class Bullet():
             self.xpos += self.xspeed
             changeSpriteImage(self.sprite,0)   # flying animation frame
             self.bottom = self.ypos + self.height
+            self.angle += 15
+            transformSprite(self.sprite, self.angle, self.scale , hflip=False, vflip=False)
         else:
             changeSpriteImage(self.sprite,1)   # impact animation frame
         
@@ -307,6 +311,5 @@ class Bullet():
         
         moveSprite(self.sprite, self.xpos, self.ypos)
         return True
-
 
 

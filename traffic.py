@@ -213,14 +213,14 @@ def update_state(vehicle, hero, bullets, vehicle_list, enemy_list):
     # when in collision with player status 
     if vehicle.collision == True:
         vehicle.breaking = True
-        runing_sound.stop()
-        idle_sound.stop()
-        probability = random.randint(1,100)   # probability for horn sound
-        if probability == 1:
-            horn_sound.play()
-        if probability == 2:
-            horn_sound.play()
-            horn_sound.play()
+        #runing_sound.stop()
+        #idle_sound.stop()
+        #probability = random.randint(1,100)   # probability for horn sound
+        #if probability == 1:
+            #horn_sound.play()
+        #if probability == 2:
+            #horn_sound.play()
+            #horn_sound.play()
                           
      
      

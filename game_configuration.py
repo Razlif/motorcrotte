@@ -3,7 +3,7 @@ from Pygame_Functions.pygame_functions import *
 import math, random
 
 # # load impact pic
-impact_picture = pygame.image.load("media/images/poop.png")
+impact_picture = pygame.image.load("media/images/poopimpact.png")
 
 # game settings
 
@@ -17,15 +17,15 @@ gravity = 0.5
 
 max_poop_number = 3
 
-max_enemy_number = 3
+max_enemy_number = 1
 
 spawn_x_range = [1200,1600]
 
 # traffic settings
 
-max_car_number = 8
+max_car_number = 2
 
-max_scooter_number = 1
+max_scooter_number = 0
 
 car_deceleration_on_player_collision = 0.8
 

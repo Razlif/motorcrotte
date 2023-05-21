@@ -27,8 +27,12 @@ class Poop():
         self.ypos = random.randint(settings.side_walk_top,settings.lane_3_bottom)
         self.frame = 0
         self.timeOfNextFrame = clock()
-        self.number_of_frames = 8
-        self.sprite = makeSprite("media/images/poop3.png",self.number_of_frames)
+        self.number_of_frames = 5
+        self.sprite = makeSprite("media/images/poop55.png",self.number_of_frames)
+        # sclae to correct size
+        self.scale = 0.5
+        angle = 0
+        transformSprite(self.sprite, angle, self.scale , hflip=False, vflip=False)
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
         self.ground_position = self.sprite.rect.bottom
@@ -45,9 +49,9 @@ class Poop():
         
         # if collected by player
         if self.sprite in allTouching(hero.sprite) and abs(hero.sprite.rect.bottom - self.sprite.rect.bottom) < 20 :
-                idle_sound.stop()
-                runing_sound.stop()
-                collect_sound.play()
+                #idle_sound.stop()
+                #runing_sound.stop()
+                #collect_sound.play()
                 hero.poop += 10
                 killSprite(self.sprite)
                 return False

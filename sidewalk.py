@@ -153,8 +153,8 @@ def update_state(sidewalk_element, hero, bullets, sidewalk_element_list):
     # when in collision with player status 
     if sidewalk_element.collision == True:
         sidewalk_element.breaking = True
-        runing_sound.stop()
-        idle_sound.play()
+        #runing_sound.stop()
+        #idle_sound.play()
         
     if sidewalk_element.hit == False:
         changeSpriteImage(sidewalk_element.sprite,  0*sidewalk_element.number_of_frames + sidewalk_element.frame) 

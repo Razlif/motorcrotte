@@ -41,9 +41,9 @@ nextFrame = clock()
 
 
 # Game Music Loop Begins:
-pygame.mixer.music.load('media/sounds/Action-Rock.mp3')
-pygame.mixer.music.set_volume(0.4)
-pygame.mixer.music.play(loops=-1)
+#pygame.mixer.music.load('media/sounds/Action-Rock.mp3')
+#pygame.mixer.music.set_volume(0.4)
+#pygame.mixer.music.play(loops=-1)
 
 
 # init player

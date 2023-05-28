@@ -81,9 +81,3 @@ while True:
     tick(120)
 
 endWait()
-
-
-
-
-
-

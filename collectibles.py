@@ -8,14 +8,16 @@ setAutoUpdate(False)
 # function to update display on main loop
 
 def update_display(poop_list, hero):
-    for i, poop in enumerate(poop_list):
-        if poop.update_state(hero) == False:
-            poop_list.pop(i)
+    new_poop_list = []
+    for poop in poop_list:
+        if poop.update_state(hero) != False:
+            new_poop_list.append(poop)
+    poop_list[:] = new_poop_list
 
-    
     if len(poop_list) < settings.max_poop_number:
         poop = Poop()
         poop_list.append(poop)
+
 
 
 

@@ -266,10 +266,21 @@ class Player():
         else:
             self.y_direction = "static"
         
-        # update bullet list
+        # Create new bullets list
+        new_bullets = []
+  
+        # Update bullet list
         for bullet in bullets:
-            if bullet.move(self) == False:
-                bullets.remove(bullet)
+            # If bullet is still active, append it to the new list
+            if bullet.move(self):
+                new_bullets.append(bullet)
+            # If bullet is not active, kill its sprite
+            else:
+                killSprite(bullet.sprite)
+            
+        # Replace old bullets list with new one
+        bullets[:] = new_bullets
+                
                 
         # update score
         self.label.update("Speed: " + str(int(self.x_velocity)) + "<br>Poop: " + str(self.poop) + "<br>Health: " + str(int(self.health)), None, None)
@@ -305,7 +316,7 @@ class Bullet():
             transformSprite(self.sprite, self.angle, self.scale , hflip=False, vflip=False)
         else:
             changeSpriteImage(self.sprite,1)   # impact animation frame
-        
+            return False
         if self.xpos < -100 or self.xpos > 1300 or self.ypos < -100 or self.ypos > 800:   # false when out of boundries
             return False
         

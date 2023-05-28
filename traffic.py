@@ -8,12 +8,14 @@ import game_configuration as settings
 setAutoUpdate(False)
 
 
-# function to update display on main loop
 def update_display(vehicle_list, hero, bullets, enemy_list):
     spawn_vehicles(vehicle_list)
-    for i, vehicle in enumerate(vehicle_list):
-        if update_state(vehicle, hero, bullets, vehicle_list, enemy_list) == False:
-            vehicle_list.pop(i)
+    new_vehicle_list = []
+    for vehicle in vehicle_list:
+        if update_state(vehicle, hero, bullets, vehicle_list, enemy_list) != False:
+            new_vehicle_list.append(vehicle)
+    vehicle_list[:] = new_vehicle_list
+
 
     
     
@@ -284,7 +286,7 @@ def when_hit(sprite, bullets):
                 hit_position_x = random.randint(65,150)
                 hit_position_y = random.randint(0,20)
                 sprite.sprite.image.blit(settings.impact_picture, (hit_position_x, hit_position_y)) 
-                killSprite(bullet.sprite)
+                bullet.impact = True
                 
 
 
@@ -323,33 +325,27 @@ def check_for_collision(sprite1, sprite2):
             car1.speed_meter += car1.speed_meter * settings.front_car_acceleration
 
 
-        
-
-# check_for_player_collision
 def check_for_player_collision(sprite1, hero):
     vehicle = sprite1
     # Check if hero is within range of vehicle for collision
     if abs((hero.ground_position) - (vehicle.ground_position)) < (hero.height * 0.25) and pygame.sprite.collide_mask(hero.sprite, vehicle.sprite):
         if hero.ground == False:
             hero.obstacle = True
-            hero.y_velocity = -1.5
-            hero.ground_position = vehicle.ground_position
-            
-            if hero.sprite.rect.left < vehicle.sprite.rect.left:
-                hero.x_velocity = -1
-            
-            elif hero.sprite.rect.right > vehicle.sprite.rect.right:
-                hero.x_velocity += 0.7
-            
-            else:
-                hero.x_velocity += 0.1
-
+            if hero.sprite.rect.bottom < vehicle.sprite.rect.centery:  # Check if player is above the center of the car
+                hero.y_velocity = -1.5
+                hero.ground_position = vehicle.ground_position
+            else:  # Player is colliding with the car from the side
+                if hero.sprite.rect.left < vehicle.sprite.rect.left:
+                    hero.x_velocity = -1
+                elif hero.sprite.rect.right > vehicle.sprite.rect.right:
+                    hero.x_velocity += 0.7
+                else:
+                    hero.x_velocity += 0.1
         else:
             if hero.ground_position < vehicle.ground_position:
                 hero.sprite.rect.bottom -= 2
             else:
-                hero.sprite.rect.bottom += 2
-            
+                hero.sprite.rect.bottom += 2      
     else:
         # Set vehicle collision to False if hero is not within range
         vehicle.collision = False

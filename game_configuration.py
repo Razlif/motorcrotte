@@ -17,13 +17,13 @@ gravity = 0.5
 
 max_poop_number = 3
 
-max_enemy_number = 1
+max_enemy_number = 3
 
 spawn_x_range = [1200,1600]
 
 # traffic settings
 
-max_car_number = 2
+max_car_number = 5
 
 max_scooter_number = 0
 
@@ -112,3 +112,5 @@ hero_break = 0.04
 hero_gas = 0.05
 
 hero_health = 100
+
+bullet_damage = 10

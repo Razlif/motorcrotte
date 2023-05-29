@@ -29,9 +29,11 @@ def update_display_2(enemy_list, hero, bullets):
 
 def spawn_enemies(enemy_list):
     if len(enemy_list) < settings.max_enemy_number:  # if cars are under the max number, make new car and append to the list
-        enemy_type = random.choice(["simple", "advanced", "advanced"])
+        enemy_type = random.choice(["simple", "simple", "simple", "advanced", "advanced", "boss"])
         if enemy_type == "simple":
-            enemy = BossEnemy()
+            enemy = SimpleEnemy()
+        elif enemy_type == "advanced":
+            enemy = AdvancedEnemy()
         else:
             enemy = BossEnemy()
         enemy_list.append(enemy)
@@ -64,6 +66,7 @@ class SimpleEnemy(Enemy):
     def __init__(self):
         super().__init__()
         self.type = 'simple'
+        self.health = 10
         self.variation_number = 5
         # create sprite
         sprite_path = "media/images/cars/bikes/"+str(self.variation_number)
@@ -95,6 +98,20 @@ class SimpleEnemy(Enemy):
         showSprite(self.sprite)
 
     def update_behavior(self, hero, bullets):
+
+        if clock() > self.timeOfNextFrame:
+            self.frame = (self.frame + 1) % self.number_of_frames
+            self.timeOfNextFrame += 80
+
+        if self.health <= 0:
+            transformSprite(self.sprite, 0 , self.scale, hflip=False, vflip=True)
+            self.x_velocity = 0
+            self.gas = False
+        else:
+            changeSpriteImage(self.sprite, self.frame)
+            if (self.x_velocity < 0 or self.gas == False):
+                transformSprite(self.sprite, 0, self.scale, hflip=True, vflip=False)
+
         distance = math.sqrt((hero.sprite.rect.x - self.sprite.rect.x)**2 + (hero.sprite.rect.y - self.sprite.rect.y)**2)
 
         if distance > 250:
@@ -149,6 +166,7 @@ class AdvancedEnemy(Enemy):
     def __init__(self):
         super().__init__()
         self.type = 'advanced'
+        self.health = 10
         self.safe_distance = 150
         self.blitz_cooldown = 5  # seconds
         self.last_blitz_time = clock()
@@ -185,6 +203,21 @@ class AdvancedEnemy(Enemy):
         showSprite(self.sprite)
 
     def update_behavior(self, hero, bullets):
+
+        if clock() > self.timeOfNextFrame:
+            self.frame = (self.frame + 1) % self.number_of_frames
+            self.timeOfNextFrame += 80
+
+        if self.health <= 0:
+            self.x_velocity = 0
+            self.gas = False
+        else:
+            changeSpriteImage(self.sprite, self.frame)
+
+        if abs((hero.ground_position) - (self.ground_position)) < (hero.height * 0.25) and self.sprite in allTouching(
+                hero.sprite):
+            changeSpriteImage(self.sprite, -2)
+
         distance = ((hero.sprite.rect.x - self.sprite.rect.x)**2 + (hero.sprite.rect.y - self.sprite.rect.y)**2)**0.5
         current_time = clock()
         time_since_last_blitz = current_time - self.last_blitz_time
@@ -246,11 +279,12 @@ class BossEnemy(Enemy):
     def __init__(self):
         super().__init__()
         self.type = 'boss'
+        self.health = 400
         self.shoot_cooldown = 10  # seconds
         self.last_shoot_time = clock()
         # create sprite
-        sprite_path = "media/images/cars/special/Asset_Tank_Shot.png"
-        self.sprite = makeSprite(sprite_path, 4)
+        sprite_path = "media/images/cars/special/Tank.png"
+        self.sprite = makeSprite(sprite_path, 6)
 
         # sclae to correct size
         self.scale = 2.85
@@ -263,25 +297,42 @@ class BossEnemy(Enemy):
         self.height = self.sprite.rect.height
         self.width =  self.sprite.rect.width
         self.ground_position = self.sprite.rect.bottom
-        self.frame = 0
-        self.number_of_frames = 4
-        self.timeOfNextFrame = clock()
-        self.lastBulletTime = clock()
-        self.state = "close_distance"
         self.previous_position = (self.sprite.rect.x, self.sprite.rect.y)
         self.ground = True
         self.hit = False
         self.bullet = None
-        
+        # ...
+        self.state = "driving"  # Add this attribute to keep track of the tank state
+        self.number_of_frames = 6  # Total number of frames
+        self.frame = 0
+        self.timeOfNextFrame = clock()
+        self.lastBulletTime = clock()
+        self.last_state_change_time = clock()
+
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
         
 
 
     def update_behavior(self, hero, bullets):
-        
-        self.hit = False
-        transformSprite(self.sprite, 0 , self.scale, hflip=True, vflip=False)
+
+        #print(self.state)
+        if clock() > self.timeOfNextFrame:
+            if self.state == "driving":
+                # The driving frames are 0 and 1 (indices start from 0, so use 0 and 1)
+                self.frame = (self.frame + 1) % 2
+            elif self.state == "shooting":
+                # The shooting frames are 2 to 5 (indices start from 0)
+                # Reset self.frame to 2 when switching to shooting state
+                if self.frame < 2 or self.frame > 5:
+                    self.frame = 2
+                else:
+                    self.frame = (self.frame + 1) % 4 + 2
+
+            self.timeOfNextFrame += 80
+            # Update sprite image to the new frame
+            changeSpriteImage(self.sprite, self.frame)
+
         # The boss moves up or down depending on the hero's position
         if hero.sprite.rect.bottom >= self.sprite.rect.bottom:
             self.y_velocity += 0.02
@@ -293,19 +344,31 @@ class BossEnemy(Enemy):
         
         # Update x position
         # The boss will stick to the right edge of the screen
-        self.sprite.rect.right = settings.screen_size_x + 200
-        
-        # Keep Y position boundaries
+        if self.state == 'dead':
+            self.sprite.rect.x += self.x_velocity
+            self.sprite.rect.x += int(hero.x_velocity) * -1
+        else:
+            self.sprite.rect.right = settings.screen_size_x + 200
+
+
+            # Keep Y position boundaries
         if self.sprite.rect.bottom > settings.lane_3_bottom:
             self.sprite.rect.bottom = settings.lane_3_bottom
         if self.sprite.rect.bottom < settings.side_walk_top:
             self.sprite.rect.bottom = settings.side_walk_top
 
         # The boss shoots at the hero if the cooldown has passed
-        current_time = clock()
-        if self.bullet is None and current_time - self.last_shoot_time > self.shoot_cooldown:
+        if self.bullet is None and clock() - self.last_shoot_time > self.shoot_cooldown:
             self.shoot_projectile()
-            self.last_shoot_time = current_time
+            self.last_shoot_time = clock()
+            self.last_state_change_time = clock()
+            self.state = "shooting"
+        else:
+            # Assume the shooting animation lasts for a certain amount of time (e.g., 320 milliseconds for 4 frames)
+            # Only change state if enough time has passed since the last state change
+            if self.state == "shooting" and clock() - self.last_state_change_time > 320:
+                self.state = "driving"
+                self.last_state_change_time = clock()
 
         # Update the bullet
         if self.bullet is not None:
@@ -313,8 +376,15 @@ class BossEnemy(Enemy):
                 killSprite(self.bullet.sprite)
                 self.bullet = None  # Destroy the bullet if it went off screen
 
+        if self.health <= 0:
+            self.state = 'dead'
+            self.x_velocity = 0
+            self.gas = False
+        else:
+            changeSpriteImage(self.sprite, self.frame)
+
     def shoot_projectile(self):
-        self.bullet = Bullet((self.sprite.rect.x+55), (self.sprite.rect.y+55), -5, 10)  # Create new bullet
+        self.bullet = Bullet((self.sprite.rect.x+55), (self.sprite.rect.y+55), -8, 10)  # Create new bullet
 
 
 class Bullet:
@@ -323,7 +393,11 @@ class Bullet:
         self.ypos = ypos
         self.xspeed = xspeed
         self.damage = damage
-        self.sprite = makeSprite("media/images/poopfly.png")
+        self.sprite = makeSprite("media/images/tank_rocket.png")
+        # sclae to correct size
+        self.scale = 0.25
+        angle = 0
+        transformSprite(self.sprite, angle, self.scale , hflip=False, vflip=False)
         showSprite(self.sprite)
         moveSprite(self.sprite, self.xpos, self.ypos)
         
@@ -345,11 +419,6 @@ class Bullet:
 def update_state(enemy, hero, bullets):
     # Common updates for all enemy types
     
-    # Rotate frames in modulu of 'frame number var' every 80 milliseconds
-    if clock() > enemy.timeOfNextFrame:  
-        enemy.frame = (enemy.frame + 1) % enemy.number_of_frames 
-        enemy.timeOfNextFrame += 80
-    
     # Update bottom location coordinate for sprite drawing order
     enemy.ground_position = enemy.sprite.rect.bottom
     
@@ -357,24 +426,12 @@ def update_state(enemy, hero, bullets):
     for bullet in bullets:
         if (bullet.sprite in allTouching(enemy.sprite) and abs((bullet.ground_position)-(enemy.ground_position)) < (enemy.height*0.2)) and hero.sprite.rect.right < enemy.sprite.rect.left:
             if bullet.impact == False:
-                enemy.hit = True
+                #enemy.hit = True
+                enemy.health -= bullet.damage
+                #print(enemy.health)
                 enemy.sprite.image.blit(settings.impact_picture, (0, 0))
                 bullet.impact = True
-                
 
-            
-    if enemy.hit == True:
-        if enemy.type != "boss":
-            #transformSprite(enemy.sprite, 0 , enemy.scale, hflip=False, vflip=True)
-            enemy.x_velocity = 0
-            enemy.gas = False
-    else:
-        changeSpriteImage(enemy.sprite,  enemy.frame)
-        if (enemy.x_velocity < 0 or enemy.gas == False) and enemy.type == 'simple':
-            transformSprite(enemy.sprite, 0 , enemy.scale, hflip=True, vflip=False)
-
-    if abs((hero.ground_position) - (enemy.ground_position)) < (hero.height * 0.25) and enemy.sprite in allTouching(hero.sprite):
-        changeSpriteImage(enemy.sprite,-2)
 
     # Check if the enemy is out of bounds
     if enemy.sprite.rect.x - hero.sprite.rect.x > settings.out_of_bounds_x or enemy.sprite.rect.x - hero.sprite.rect.x < settings.out_of_bounds_x * -1:

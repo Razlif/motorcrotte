@@ -294,7 +294,7 @@ class Bullet():
         self.xpos = xpos
         self.ypos = ypos
         self.xspeed = xspeed
-        self.damage = 0
+        self.damage = settings.bullet_damage
         self.impact = False
         self.sprite = makeSprite("media/images/poopfly.png")
         addSpriteImage(self.sprite, "media/images/poopimpact.png")

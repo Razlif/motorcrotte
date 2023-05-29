@@ -26,10 +26,53 @@ def sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_
             spriteGroup.change_layer(sprite.sprite, i)
         except:
             pass
-        
+
+def draw_text(surface, text, size, x, y):
+    # choose a font (you can choose another if you like)
+    font_name = pygame.font.match_font('arial')
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, 'WHITE')  # True stands for anti-aliasing, WHITE is the color of the text which is usually defined as (255, 255, 255)
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surface.blit(text_surface, text_rect)
+
+def show_start_screen():
+    # Load the image
+    background = pygame.image.load("media/images/main1.png")  # Replace 'background_image_path.png' with the path to your image file
+    background = pygame.transform.scale(background, (settings.screen_size_x, settings.screen_size_y))  # Scale the image to fit the screen
+
+    # Draw the image
+    screen.blit(background, (0, 0))
+
+    # Draw the text
+    draw_text(screen, "MOTOCROTTE", 64, settings.screen_size_x / 2, settings.screen_size_y / 4)
+    draw_text(screen, "Press any key to start", 18, settings.screen_size_x / 2, settings.screen_size_y / 2)
+
+    # Update the display
+    pygame.display.flip()
+
+    # Start screen Music Loop Begins:
+    pygame.mixer.music.load('media/mainRiff.wav')
+    pygame.mixer.music.set_volume(0.8)
+    pygame.mixer.music.play(loops=-1)
+
+    # Wait for the player to press a key
+    wait_for_key()
+
+def wait_for_key():
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP:
+                waiting = False
+
 # set screen
 screen = screenSize(settings.screen_size_x, settings.screen_size_y)
 
+# Show the start screen
+show_start_screen()
 
 # set scrolling background
 bg = setBackgroundImage( [  ["media/images/new_background5.png", "media/images/new_background5.png"]  ])
@@ -58,9 +101,6 @@ enemy_list = []
 
 #main game loop
 while True:
-    if clock() > nextFrame:                         
-        frame = (frame+1)%8                      
-        nextFrame += 80   # animate a new frame every 80 milisec
     
     scrollBackground((int(hero.x_velocity)*-1),0)   # scroll the background by negative ratio to the player's speed
     

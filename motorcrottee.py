@@ -1,5 +1,5 @@
 ## main game script
-
+import stage_handler
 # import some packages
 from Pygame_Functions.pygame_functions import *
 import pygame
@@ -77,12 +77,6 @@ show_start_screen()
 # set scrolling background
 bg = setBackgroundImage( [  ["media/images/new_background5.png", "media/images/new_background5.png"]  ])
 
-
-#init frames
-frame=0
-nextFrame = clock()
-
-
 # Game Music Loop Begins:
 #pygame.mixer.music.load('media/sounds/Action-Rock.mp3')
 #pygame.mixer.music.set_volume(0.4)
@@ -98,26 +92,22 @@ vehicle_list = []
 poop_list = []
 sidewalk_element_list = []
 enemy_list = []
+stage = 1
 
 #main game loop
 while True:
     
-    scrollBackground((int(hero.x_velocity)*-1),0)   # scroll the background by negative ratio to the player's speed
-    
-    hero.move()   # update the player's actions
-    
-    obstacles.update_display(vehicle_list, hero, bullets, enemy_list) # update the traffic
-    
-    sidewalk.update_display(sidewalk_element_list, hero, bullets) # update the sidewalk
-    
-    collectibles.update_display(poop_list, hero)  # update the poop
-    
-    enemies.update_display(enemy_list, hero, bullets)
+    if stage == 1:
+        stage_handler.stage_1(vehicle_list, hero, bullets, enemy_list, sidewalk_element_list, poop_list)
     
     # sort the spriteGroup based on the y position of the bottom of each sprite
     sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero)
-        
+
+    # update score
+    hero.label.update(
+        "Score: " + str(hero.score) + "Speed: " + str(int(hero.x_velocity)) + "<br>Poop: " + str(hero.poop) + "<br>Health: " + str(int(hero.health)),
+        None, None)
     updateDisplay()
-    tick(120)
+    tick(90)
 
 endWait()

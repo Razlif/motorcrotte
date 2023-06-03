@@ -6,37 +6,35 @@ from sound_elements import *
 import math, random
 import game_configuration as settings
 import time
-
+from stage_config import *
 setAutoUpdate(False)
 
-
-def update_display(enemy_list, hero, bullets):
-    spawn_enemies(enemy_list)
+def update_display(enemy_list, hero, bullets, stage, wave):
+    enemy_manager(enemy_list, stage, wave)
     new_enemy_list = []
     for enemy in enemy_list:
         if update_state(enemy, hero, bullets) != False:
             new_enemy_list.append(enemy)
     enemy_list[:] = new_enemy_list
+def enemy_manager(enemy_list, stage, wave):
+
+    if len(enemy_list) == 0:  # Only spawn new enemies if all previous enemies have been defeated
+        wave_info = stage_configuration["stage_" + str(stage)]["waves"][wave]
+        enemy_number = wave_info['enemy_count']
+        enemy_types = wave_info['enemy_types']
+
+        for _ in range(enemy_number):
+            enemy_type = random.choice(enemy_types)
+            if enemy_type == "simple":
+                enemy = SimpleEnemy()
+            elif enemy_type == "advanced":
+                enemy = AdvancedEnemy()
+            elif enemy_type == "boss":
+                enemy = BossEnemy()
+            enemy_list.append(enemy)
 
 
-def update_display_2(enemy_list, hero, bullets):
-    spawn_enemies(enemy_list)
-    for i, enemy in enumerate(enemy_list):
-        if update_state(enemy, hero, bullets) == False:
-            enemy_list.pop(i)
 
-
-
-def spawn_enemies(enemy_list):
-    if len(enemy_list) < settings.max_enemy_number:  # if cars are under the max number, make new car and append to the list
-        enemy_type = random.choice(["simple", "simple", "simple", "advanced", "advanced", "boss"])
-        if enemy_type == "simple":
-            enemy = SimpleEnemy()
-        elif enemy_type == "advanced":
-            enemy = AdvancedEnemy()
-        else:
-            enemy = BossEnemy()
-        enemy_list.append(enemy)
 
 # enemy class
 class Enemy():
@@ -431,6 +429,7 @@ def update_state(enemy, hero, bullets):
                 #print(enemy.health)
                 enemy.sprite.image.blit(settings.impact_picture, (0, 0))
                 bullet.impact = True
+                hero.score += 10
 
 
     # Check if the enemy is out of bounds

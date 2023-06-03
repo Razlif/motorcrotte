@@ -16,7 +16,7 @@ bullets = []
 class Player():
     def __init__(self):
         # Reset intial Vars
-        
+        self.score = 0
         self.x_direction = "static"
         self.y_direction = "static"
         self.y_velocity = 0
@@ -282,8 +282,7 @@ class Player():
         bullets[:] = new_bullets
                 
                 
-        # update score
-        self.label.update("Speed: " + str(int(self.x_velocity)) + "<br>Poop: " + str(self.poop) + "<br>Health: " + str(int(self.health)), None, None)
+
 
 
                 
@@ -304,6 +303,7 @@ class Bullet():
         self.ground_position = hero.ground_position
         self.angle = 0
         self.scale = 0.5
+        self.score = 0
         showSprite(self.sprite)
         
 

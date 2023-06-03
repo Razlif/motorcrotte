@@ -2,13 +2,34 @@ from Pygame_Functions.pygame_functions import *
 import math, random
 from sound_elements import *
 import game_configuration as settings
-
+from stage_config import *
 
 
 setAutoUpdate(False)
+def update_display(vehicle_list, hero, bullets, enemy_list, stage, wave):
+    traffic_manager(vehicle_list, stage, wave)
+    new_vehicle_list = []
+    for vehicle in vehicle_list:
+        if update_state(vehicle, hero, bullets, vehicle_list, enemy_list) != False:
+            new_vehicle_list.append(vehicle)
+    vehicle_list[:] = new_vehicle_list
+
+def traffic_manager(vehicle_list, stage, wave):
+    wave_info = stage_configuration["stage_" + str(stage)]["waves"][wave]
+    vehicle_count = wave_info['vehicle_count']
+    vehicle_types = wave_info['vehicle_types']
+
+    # Spawn new vehicles until the total count matches the wave configuration
+    while len(vehicle_list) < vehicle_count:
+        vehicle_type = random.choice(vehicle_types)
+        if vehicle_type == "car":
+            vehicle = Car()
+        else:
+            vehicle = Scooter()
+        vehicle_list.append(vehicle)
 
 
-def update_display(vehicle_list, hero, bullets, enemy_list):
+def update_display2(vehicle_list, hero, bullets, enemy_list):
     spawn_vehicles(vehicle_list)
     new_vehicle_list = []
     for vehicle in vehicle_list:

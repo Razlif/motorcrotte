@@ -98,15 +98,39 @@ stage = 1
 while True:
     
     if stage == 1:
-        stage_handler.stage_1(vehicle_list, hero, bullets, enemy_list, sidewalk_element_list, poop_list)
-    
-    # sort the spriteGroup based on the y position of the bottom of each sprite
-    sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero)
+        current_wave = stage_handler.stage_1(vehicle_list, hero, bullets, enemy_list, sidewalk_element_list, poop_list)
+        if current_wave == 'end_level':
+            # Display end of level screen
+            # Load the image
+            background = pygame.image.load(
+                "media/images/main1.png")  # Replace 'background_image_path.png' with the path to your image file
+            background = pygame.transform.scale(background, (
+                settings.screen_size_x, settings.screen_size_y))  # Scale the image to fit the screen
 
-    # update score
-    hero.label.update(
-        "Score: " + str(hero.score) + "Speed: " + str(int(hero.x_velocity)) + "<br>Poop: " + str(hero.poop) + "<br>Health: " + str(int(hero.health)),
-        None, None)
+            # Draw the image
+            screen.blit(background, (0, 0))
+
+            # use the font render function to create the end level text surfaces
+            end_text = hero.font.render('Level Completed', True, (255, 255, 255))
+            score_text = hero.font.render('Score: ' + str(hero.score), True, (255, 255, 255))
+
+            # Compute performance grade based on whatever metric you prefer
+            performance_grade = "S Rank"  # replace this with your actual function
+            performance_text = hero.font.render('Performance: ' + performance_grade, True, (255, 255, 255))
+
+            # blit the text surfaces onto the screen at desired positions
+            screen.blit(end_text, (screen.get_width() // 2 - end_text.get_width() // 2, screen.get_height() // 3))
+            screen.blit(score_text, (screen.get_width() // 2 - score_text.get_width() // 2, screen.get_height() // 2))
+            screen.blit(performance_text,
+                        (screen.get_width() // 2 - performance_text.get_width() // 2, screen.get_height() // 2 + 60))
+        else:
+
+            # sort the spriteGroup based on the y position of the bottom of each sprite
+            sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero)
+
+            # update score
+            hero.draw_labels(screen, 100, 100)
+
     updateDisplay()
     tick(90)
 

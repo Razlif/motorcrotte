@@ -111,6 +111,6 @@ hero_break = 0.04
 
 hero_gas = 0.05
 
-hero_health = 100
+hero_health = 1000
 
 bullet_damage = 10

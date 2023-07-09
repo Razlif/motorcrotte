@@ -38,6 +38,7 @@ class Player():
         self.ground = True
         self.poop = 0
         self.obstacle = False
+        self.font = pygame.font.Font('media/Ghoust_Outline.otf', 45)
         
         
         # create sprite
@@ -71,8 +72,8 @@ class Player():
         showSprite(self.sprite)
         
         #Score label
-        self.label = makeLabel("Speed: " + str(int(self.x_velocity)) + "<br>Poop: " + str(self.poop), 35, 0, 0 , "green")
-        showLabel(self.label)
+        #self.label = makeLabel("Speed: " + str(int(self.x_velocity)) + "<br>Poop: " + str(self.poop), 35, 0, 0 , "green")
+        #showLabel(self.label)
         
 
     def move(self):
@@ -280,8 +281,17 @@ class Player():
             
         # Replace old bullets list with new one
         bullets[:] = new_bullets
-                
-                
+
+    def draw_labels(self, screen, x, y):
+        score_label = self.font.render("Score: " + str(self.score), 1, (255, 0, 0))  # Red
+        speed_label = self.font.render("Speed: " + str(int(self.x_velocity)), 1, (0, 255, 0))  # Green
+        poop_label = self.font.render("Poop: " + str(self.poop), 1, (0, 0, 255))  # Blue
+        health_label = self.font.render("Health: " + str(int(self.health)), 1, (255, 255, 0))  # Yellow
+
+        screen.blit(score_label, (x, y))
+        screen.blit(speed_label, (x, y + 40))  # Adjust y for each label to prevent overlap
+        screen.blit(poop_label, (x, y + 80))
+        screen.blit(health_label, (x, y + 120))
 
 
 
@@ -304,6 +314,7 @@ class Bullet():
         self.angle = 0
         self.scale = 0.5
         self.score = 0
+
         showSprite(self.sprite)
         
 

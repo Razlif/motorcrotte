@@ -25,18 +25,22 @@ def stage_1(vehicle_list, hero, bullets, enemy_list, sidewalk_element_list, poop
         current_wave = 2
     elif hero.score < 120:
         current_wave = 3
-    else:
+    elif hero.score < 150:
         current_wave = 4
+    else:
+        current_wave = 'end_level'
 
-    scrollBackground((int(hero.x_velocity) * -1), 0)  # scroll the background by negative ratio to the player's speed
+    if current_wave != 'end_level':
 
-    hero.move()  # update the player's actions
+        scrollBackground((int(hero.x_velocity) * -1), 0)  # scroll the background by negative ratio to the player's speed
 
-    obstacles.update_display(vehicle_list, hero, bullets, enemy_list, 1, current_wave)  # update the traffic
+        hero.move()  # update the player's actions
 
-    sidewalk.update_display(sidewalk_element_list, hero, bullets)  # update the sidewalk
+        obstacles.update_display(vehicle_list, hero, bullets, enemy_list, 1, current_wave)  # update the traffic
 
-    collectibles.update_display(poop_list, hero)  # update the poop
+        sidewalk.update_display(sidewalk_element_list, hero, bullets)  # update the sidewalk
 
-    enemies.update_display(enemy_list, hero, bullets, 1, current_wave)
+        collectibles.update_display(poop_list, hero)  # update the poop
 
+        enemies.update_display(enemy_list, hero, bullets, 1, current_wave)
+    return current_wave

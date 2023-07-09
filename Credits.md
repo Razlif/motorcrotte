@@ -9,3 +9,4 @@ This project contains assets created by various artists and software:
 - All of the vehicle images were created by the talanted pixel-salvaje (https://pixel-salvaje.itch.io/), who retains the copyright of these images. These images are included in this project with their permission.
 
 
+- Ghoust Font courtesy of 38-LineArt Studio

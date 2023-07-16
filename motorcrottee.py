@@ -129,7 +129,7 @@ while True:
             sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero)
 
             # update score
-            hero.draw_labels(screen, 100, 100)
+            hero.draw_labels(screen, 10, 10)
 
     updateDisplay()
     tick(90)

@@ -11,9 +11,9 @@ stage_configuration = {
             },
             {
                 "wave_number": 1,
-                "enemy_count": 2,
+                "enemy_count": 1,
                 "vehicle_count": 5,
-                "enemy_types": ["simple", "advanced"],
+                "enemy_types": ["advanced"],
                 "vehicle_types": ["car", "scooter"],
                 "cooldown": 5
             },

@@ -12,6 +12,7 @@ from sound_elements import *
 import game_configuration as settings
 import enemies
 
+
 setAutoUpdate(False)
 
 def sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero):

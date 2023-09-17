@@ -8,7 +8,7 @@ import game_configuration as settings
 import time
 from stage_config import *
 setAutoUpdate(False)
-
+import collisions
 def update_display(enemy_list, hero, bullets, stage, wave):
     enemy_manager(enemy_list, stage, wave)
     new_enemy_list = []
@@ -40,8 +40,9 @@ def enemy_manager(enemy_list, stage, wave):
 class Enemy():
     def __init__(self):
         # Reset intial Vars
-
+        self.type = "enemy"
         self.x_velocity = 0
+        self.speed_meter = self.x_velocity
         self.y_velocity = 0
         self.health = 100
         self.xdir = 0 # shooting direction
@@ -63,7 +64,7 @@ class Enemy():
 class SimpleEnemy(Enemy):
     def __init__(self):
         super().__init__()
-        self.type = 'simple'
+        self.level = 'simple'
         self.health = 10
         self.damage = 20
         self.score_reward = 10
@@ -178,7 +179,7 @@ class SimpleEnemy(Enemy):
 class AdvancedEnemy(Enemy):
     def __init__(self):
         super().__init__()
-        self.type = 'advanced'
+        self.level = 'advanced'
         self.health = 10
         self.damage = 20
         self.score_reward = 25
@@ -233,12 +234,12 @@ class AdvancedEnemy(Enemy):
                 self.sprite.image.set_alpha(self.transparency)
         else:
             changeSpriteImage(self.sprite, self.frame)
+            if (self.x_velocity < 0 or self.gas == False):
+                transformSprite(self.sprite, 0, self.scale, hflip=True, vflip=False)
 
         if (abs((hero.ground_position) - (self.ground_position)) < (hero.height * 0.25) and self.sprite in allTouching(
                 hero.sprite)) and self.dead == False:
             changeSpriteImage(self.sprite, -2)
-            hero.health -= self.damage
-            hero.hit = True
 
         distance = ((hero.sprite.rect.x - self.sprite.rect.x)**2 + (hero.sprite.rect.y - self.sprite.rect.y)**2)**0.5
         current_time = clock()
@@ -288,7 +289,7 @@ class AdvancedEnemy(Enemy):
             self.x_velocity = hero.x_velocity * 2
 
         self.sprite.rect.x += self.x_velocity
-        self.sprite.rect.x += int(hero.x_velocity) * -1 
+        self.sprite.rect.x += int(hero.x_velocity) * -1
 
         # Keep Y position boundaries
         if self.sprite.rect.bottom > settings.lane_3_bottom:
@@ -443,7 +444,7 @@ class Bullet:
 
 def update_state(enemy, hero, bullets):
     # Common updates for all enemy types
-    
+    enemy.speed_meter = enemy.x_velocity
     # Update bottom location coordinate for sprite drawing order
     enemy.ground_position = enemy.sprite.rect.bottom
     
@@ -468,5 +469,5 @@ def update_state(enemy, hero, bullets):
     
     # Call the specific update_behavior method for each enemy type
     result = enemy.update_behavior(hero, bullets)
-    
+
     return result

@@ -4,15 +4,15 @@ stage_configuration = {
             {
                 "wave_number": 0,
                 "enemy_count": 1,
-                "vehicle_count": 5,
-                "enemy_types": ["simple"],
-                "vehicle_types": ["car", "scooter"],
+                "vehicle_count": 9,
+                "enemy_types": ["advanced"],
+                "vehicle_types": ["car"],
                 "cooldown": 5
             },
             {
                 "wave_number": 1,
-                "enemy_count": 1,
-                "vehicle_count": 5,
+                "enemy_count": 2,
+                "vehicle_count": 2,
                 "enemy_types": ["advanced"],
                 "vehicle_types": ["car", "scooter"],
                 "cooldown": 5
@@ -20,16 +20,16 @@ stage_configuration = {
             {
                 "wave_number": 2,
                 "enemy_count": 3,
-                "vehicle_count": 8,
-                "enemy_types": ["simple", "advanced"],
+                "vehicle_count": 7,
+                "enemy_types": ["advanced"],
                 "vehicle_types": ["car", "scooter"],
                 "cooldown": 8
             },
             {
                 "wave_number": 3,
-                "enemy_count": 5,
-                "vehicle_count": 2,
-                "enemy_types": ["simple", "advanced"],
+                "enemy_count": 4,
+                "vehicle_count": 12,
+                "enemy_types": ["advanced"],
                 "vehicle_types": ["car", "scooter"],
                 "cooldown": 8
             },

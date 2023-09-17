@@ -5,6 +5,7 @@ from Pygame_Functions.pygame_functions import *
 from sound_elements import *
 import math, random
 import game_configuration as settings
+import collisions
 
 setAutoUpdate(False)
 
@@ -16,11 +17,13 @@ bullets = []
 class Player():
     def __init__(self):
         # Reset intial Vars
+        self.type = "hero"
         self.score = 0
         self.x_direction = "static"
         self.y_direction = "static"
         self.y_velocity = 0
         self.x_velocity = 0
+        self.speed_meter = self.x_velocity
         self.health = settings.hero_health
         self.xdir = 1  # shooting direction
         self.ydir = 0  # currently unused
@@ -39,6 +42,7 @@ class Player():
         self.poop = 0
         self.obstacle = False
         self.hit = False
+        self.roof = False
         self.font = pygame.font.Font('media/Ghoust_Solid.otf', 45)
 
         # create sprite
@@ -70,11 +74,11 @@ class Player():
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
 
-    def move(self):
+    def move(self, enemy_list, vehicle_list):
 
         # update last position before new changes
         self.previous_position = self.sprite.rect.copy()
-
+        self.speed_meter = self.x_velocity
         # update frame number
         if clock() > self.timeOfNextFrame:  # We only animate our character every 80ms.
             self.frame = (self.frame + 1) % self.number_of_frames
@@ -83,13 +87,18 @@ class Player():
         # update the frame
         changeSpriteImage(self.sprite, self.frame)
 
+        sprite_list = enemy_list + vehicle_list
+        # update state based on other cars
+        collision = collisions.collision_list_handler(self, sprite_list)
+
         # update bottom location coordinate for sprite drawing order but not when hero is jumping
-        if self.ground == True:
+        if self.ground == True or self.roof == True:
             transformSprite(self.sprite, 0, self.scale, hflip=False, vflip=False)
-            self.ground_position = self.sprite.rect.bottom
             self.y_velocity = 0
+            if self.roof == False:
+                self.ground_position = self.sprite.rect.bottom
         else:
-            if self.sprite.rect.bottom < self.ground_position:
+            if self.sprite.rect.bottom <= self.ground_position:
                 self.y_velocity += settings.gravity
             else:
                 self.sprite.rect.bottom = self.ground_position
@@ -122,7 +131,7 @@ class Player():
 
         # JUMP
         if keyPressed("q"):
-            if self.ground == True or self.obstacle == True:
+            if self.ground == True or self.roof == True:
                 self.jump = True
 
         # DASH
@@ -179,6 +188,7 @@ class Player():
         # when jump
         if self.jump == True:
             self.ground = False
+            #self.roof = False
             changeSpriteImage(self.sprite, self.frame)
             transformSprite(self.sprite, -45, self.scale, hflip=False, vflip=False)
             self.y_velocity -= self.jump_size
@@ -225,12 +235,11 @@ class Player():
                 self.sprite.rect.x = 1000
 
         if self.hit == True:
-            # make transperant when hit
-            self.sprite.image.set_alpha(0)
-            self.x_velocity *= 0.9
-            self.hit=False
+            # make transparent or opaque randomly when hit
+            self.sprite.image.set_alpha(random.choice([0, 255]))
+            self.hit = False
         else:
-            # clear transpernacy if any
+            # clear transparency if any
             self.sprite.image.set_alpha(255)
 
         # update Y value up or down based on Y velocity
@@ -283,21 +292,6 @@ class Player():
         screen.blit(speed_label, (x, y + 40))  # Adjust y for each label to prevent overlap
         screen.blit(poop_label, (x, y + 80))
         screen.blit(health_label, (x, y + 120))
-
-
-    def when_collision(self, spriteGroup):
-        # method for player collision
-        for gameElement in spriteGroup:
-            if gameElement.type == 'car':
-                pass
-            elif gameElement.type == 'bike':
-                pass
-            elif gameElement.type == 'dog':
-                pass
-            elif gameElement.type == 'person':
-                pass
-            elif gameElement.type == 'enemy':
-                self.hit = True
 
 
 

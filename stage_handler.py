@@ -34,7 +34,7 @@ def stage_1(vehicle_list, hero, bullets, enemy_list, sidewalk_element_list, poop
 
         scrollBackground((int(hero.x_velocity) * -1), 0)  # scroll the background by negative ratio to the player's speed
 
-        hero.move()  # update the player's actions
+        hero.move(enemy_list, vehicle_list)  # update the player's actions
 
         obstacles.update_display(vehicle_list, hero, bullets, enemy_list, 1, current_wave)  # update the traffic
 

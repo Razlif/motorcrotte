@@ -1,9 +1,22 @@
 # game configuration file
 from Pygame_Functions.pygame_functions import *
 import math, random
+import os
+import sys
 
-# # load impact pic
-impact_picture = pygame.image.load("media/images/poopimpact.png")
+# Determine the base directory (either the directory of the script or the executable)
+if getattr(sys, 'frozen', False):
+    # Executable mode
+    base_dir = os.path.dirname(sys.executable)
+else:
+    # Script mode
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the absolute path to the image
+image_path = os.path.join(base_dir, 'media', 'images', 'poopimpact.png')
+
+# Load the image using the absolute path
+impact_picture = pygame.image.load(image_path)
 
 # game settings
 

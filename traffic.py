@@ -3,6 +3,7 @@ import math, random
 from sound_elements import *
 import game_configuration as settings
 from stage_config import *
+import collisions
 
 
 setAutoUpdate(False)
@@ -227,25 +228,12 @@ def update_state(vehicle, hero, bullets, vehicle_list, enemy_list):
             
     # when breaking    
     elif vehicle.breaking == True:
+        vehicle.gas = False
         # decrease speed
         vehicle.speed_meter -= settings.breaking_deceleration 
     else:
         vehicle.speed_meter -= settings.natural_deceleration 
         # natural deceleration
-            
-            
-        
-    # when in collision with player status 
-    if vehicle.collision == True:
-        vehicle.breaking = True
-        #runing_sound.stop()
-        #idle_sound.stop()
-        #probability = random.randint(1,100)   # probability for horn sound
-        #if probability == 1:
-            #horn_sound.play()
-        #if probability == 2:
-            #horn_sound.play()
-            #horn_sound.play()
                           
      
      
@@ -261,26 +249,16 @@ def update_state(vehicle, hero, bullets, vehicle_list, enemy_list):
         vehicle.speed_meter = vehicle.intial_speed
     if vehicle.speed_meter < 0:  # low speed boundry
         vehicle.speed_meter = 0
-        
-    #if hero.x_velocity > settings.hero_top_speed and vehicle.speed_meter > hero.x_velocity * settings.cars_speed_limit:  # high speed boundry
-    #    vehicle.speed_meter = hero.x_velocity * settings.cars_speed_limit
-    
+
     vehicle.sprite.rect.x += vehicle.speed_meter  # change  X position by speed meter
     vehicle.sprite.rect.x += int(hero.x_velocity)*-1   # adapt to background scroll
  
-    
+    sprite_list = enemy_list + vehicle_list
+    sprite_list.append(hero)
     # update state based on other cars
-    for other_car in vehicle_list:   
-        collision = check_for_collision(vehicle, other_car)
+    collision = collisions.collision_list_handler(vehicle, sprite_list)
 
-    # update state based on other cars
-    for enemy in enemy_list:   
-        collision = check_for_player_collision(vehicle, enemy)
-    
-    # in case of collision with player        
-    collision = check_for_player_collision(vehicle, hero)
-    
-        
+
     # keep Y position boundries
     if vehicle.sprite.rect.bottom > settings.lane_3_bottom:
         vehicle.sprite.rect.bottom = settings.lane_3_bottom
@@ -308,71 +286,6 @@ def when_hit(sprite, bullets):
                 hit_position_y = random.randint(0,20)
                 sprite.sprite.image.blit(settings.impact_picture, (hit_position_x, hit_position_y)) 
                 bullet.impact = True
-                
-
-
-# function to check for collision between non hero elements
-def check_for_collision(sprite1, sprite2):
-
-    car1= sprite1
-    car2= sprite2
-        
-    if abs((car1.ground_position)-(car2.ground_position)) < (car1.height*0.5):  # in possible range for collision
-        if car1.sprite.rect.right < car2.sprite.rect.left - settings.traffic_clear_distance or car1.sprite.rect.left > car2.sprite.rect.right + settings.traffic_clear_distance:             
-            # far enough back or front
-            car1.gas = True
-            car1.state = "default"
-            
-        elif car1.sprite.rect.right < car2.sprite.rect.left - settings.behind_distance:
-            # getting close to car in front           
-            if car1.speed_meter > car2.speed_meter:
-                car1.breaking = True
-            car1.state = "behind"
-            
-        elif car1.sprite.rect.right < car2.sprite.rect.left - settings.close_behind_distance:
-            # getting very close to car in front
-            car1.breaking = True
-            car1.speed_meter -= car1.speed_meter * settings.vehicle_slowdown_when_close_behind
-            car1.state = "close behind"
-            
-        elif car1.sprite.rect.left < car2.sprite.rect.left and car1.sprite.rect.right > car2.sprite.rect.left:
-            # overlapping with car in front
-            car1.speed_meter = 0
-            car1.state = "overlap"
-            
-        else:
-            car1.gas = True  # in case in front speed up a little
-            car1.state = "in front"
-            car1.speed_meter += car1.speed_meter * settings.front_car_acceleration
-
-
-def check_for_player_collision(sprite1, hero):
-    vehicle = sprite1
-    # Check if hero is within range of vehicle for collision
-    if abs((hero.ground_position) - (vehicle.ground_position)) < (hero.height * 0.25) and pygame.sprite.collide_mask(hero.sprite, vehicle.sprite):
-        if hero.ground == False:
-            hero.obstacle = True
-            if hero.sprite.rect.bottom < vehicle.sprite.rect.centery:  # Check if player is above the center of the car
-                hero.y_velocity = -1.5
-                hero.ground_position = vehicle.ground_position
-            else:  # Player is colliding with the car from the side
-                if hero.sprite.rect.left < vehicle.sprite.rect.left:
-                    hero.x_velocity = -1
-                elif hero.sprite.rect.right > vehicle.sprite.rect.right:
-                    hero.x_velocity += 0.7
-                else:
-                    hero.x_velocity += 0.1
-        else:
-            if hero.ground_position < vehicle.ground_position:
-                hero.sprite.rect.bottom -= 2
-            else:
-                hero.sprite.rect.bottom += 2      
-    else:
-        # Set vehicle collision to False if hero is not within range
-        vehicle.collision = False
-        hero.obstacle = False
-
-        
 
 
 variation_data = {

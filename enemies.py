@@ -8,7 +8,7 @@ import game_configuration as settings
 import time
 from stage_config import *
 setAutoUpdate(False)
-
+import collisions
 def update_display(enemy_list, hero, bullets, stage, wave):
     enemy_manager(enemy_list, stage, wave)
     new_enemy_list = []
@@ -40,8 +40,9 @@ def enemy_manager(enemy_list, stage, wave):
 class Enemy():
     def __init__(self):
         # Reset intial Vars
-
+        self.type = "enemy"
         self.x_velocity = 0
+        self.speed_meter = self.x_velocity
         self.y_velocity = 0
         self.health = 100
         self.xdir = 0 # shooting direction
@@ -63,8 +64,10 @@ class Enemy():
 class SimpleEnemy(Enemy):
     def __init__(self):
         super().__init__()
-        self.type = 'simple'
+        self.level = 'simple'
         self.health = 10
+        self.damage = 20
+        self.score_reward = 10
         self.variation_number = 5
         # create sprite
         sprite_path = "media/images/cars/bikes/"+str(self.variation_number)
@@ -77,7 +80,7 @@ class SimpleEnemy(Enemy):
         angle = 0
         transformSprite(self.sprite, angle, self.scale , hflip=False, vflip=False)
         self.sprite.rect.x = 1400
-        self.sprite.rect.y = 400
+        self.sprite.rect.y = random.randint(200,500)
         
         # addirional vars
         self.height = self.sprite.rect.height
@@ -90,41 +93,51 @@ class SimpleEnemy(Enemy):
         self.state = "close_distance"
         self.previous_position = (self.sprite.rect.x, self.sprite.rect.y)
         self.ground = True
-        self.hit = False
+        self.dead = False
+        self.transparency = 255
         
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
 
     def update_behavior(self, hero, bullets):
-
         if clock() > self.timeOfNextFrame:
             self.frame = (self.frame + 1) % self.number_of_frames
             self.timeOfNextFrame += 80
 
-        if self.health <= 0:
-            transformSprite(self.sprite, 0 , self.scale, hflip=False, vflip=True)
-            self.x_velocity = 0
+        if self.dead == True or self.health < 0:
+            self.x_velocity *= 0.5
             self.gas = False
+            if self.transparency > 0:
+                self.transparency -= 5
+                self.sprite.image.set_alpha(self.transparency)
         else:
             changeSpriteImage(self.sprite, self.frame)
             if (self.x_velocity < 0 or self.gas == False):
                 transformSprite(self.sprite, 0, self.scale, hflip=True, vflip=False)
 
-        distance = math.sqrt((hero.sprite.rect.x - self.sprite.rect.x)**2 + (hero.sprite.rect.y - self.sprite.rect.y)**2)
+        if (abs((hero.ground_position) - (self.ground_position)) < (hero.height * 0.25) and self.sprite in allTouching(
+                hero.sprite)) and self.dead == False:
+            hero.health -= self.damage
+            hero.hit = True
+            self.state = "defend"
 
-        if distance > 250:
+        distance = math.sqrt(
+            (hero.sprite.rect.x - self.sprite.rect.x) ** 2 + (hero.sprite.rect.y - self.sprite.rect.y) ** 2)
+
+        if distance > 400:
             self.state = "attack"
         else:
-            self.state = "attack"
-        
+            self.state = "defend"
+
         if self.state == "attack":
+
             if hero.ground_position > self.ground_position:
                 self.up = False
                 self.down = True
             else:
                 self.down = False
                 self.up = True
-            
+
             if hero.sprite.rect.x + hero.width > self.sprite.rect.x + self.width:
                 self.gas = True
             else:
@@ -138,8 +151,9 @@ class SimpleEnemy(Enemy):
     def update_position(self, hero):
         if self.gas == True:  
             self.x_velocity += 0.3    
-        else:
+        elif self.x_velocity > 0:
             self.x_velocity -= 0.5
+
         
         if self.up == True:
             self.sprite.rect.y -= 1
@@ -147,11 +161,13 @@ class SimpleEnemy(Enemy):
         if self.down == True:
             self.sprite.rect.y += 1
         
-        if self.x_velocity > hero.x_velocity * 2 and hero.x_velocity > 1:
-            self.x_velocity = hero.x_velocity * 2
+        if self.x_velocity > hero.x_velocity * 1.5:
+            self.x_velocity = hero.x_velocity * 1.5
         
         # Move
         self.sprite.rect.x += self.x_velocity
+
+        # adapting to screen scroll
         self.sprite.rect.x += int(hero.x_velocity) * -1
 
         # Keep Y position boundaries
@@ -163,8 +179,10 @@ class SimpleEnemy(Enemy):
 class AdvancedEnemy(Enemy):
     def __init__(self):
         super().__init__()
-        self.type = 'advanced'
+        self.level = 'advanced'
         self.health = 10
+        self.damage = 20
+        self.score_reward = 25
         self.safe_distance = 150
         self.blitz_cooldown = 5  # seconds
         self.last_blitz_time = clock()
@@ -182,7 +200,7 @@ class AdvancedEnemy(Enemy):
         angle = 0
         transformSprite(self.sprite, angle, self.scale , hflip=False, vflip=False)
         self.sprite.rect.x = 1400
-        self.sprite.rect.y = 400
+        self.sprite.rect.y = random.randint(200,500)
         
         # addirional vars
         self.height = self.sprite.rect.height
@@ -195,7 +213,8 @@ class AdvancedEnemy(Enemy):
         self.state = "close_distance"
         self.previous_position = (self.sprite.rect.x, self.sprite.rect.y)
         self.ground = True
-        self.hit = False
+        self.dead = False
+        self.transparency = 255
         
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
@@ -206,14 +225,20 @@ class AdvancedEnemy(Enemy):
             self.frame = (self.frame + 1) % self.number_of_frames
             self.timeOfNextFrame += 80
 
-        if self.health <= 0:
-            self.x_velocity = 0
+        
+        if self.dead == True or self.health < 0:
+            self.x_velocity *= 0.5
             self.gas = False
+            if self.transparency > 0:
+                self.transparency -= 10
+                self.sprite.image.set_alpha(self.transparency)
         else:
             changeSpriteImage(self.sprite, self.frame)
+            if (self.x_velocity < 0 or self.gas == False):
+                transformSprite(self.sprite, 0, self.scale, hflip=True, vflip=False)
 
-        if abs((hero.ground_position) - (self.ground_position)) < (hero.height * 0.25) and self.sprite in allTouching(
-                hero.sprite):
+        if (abs((hero.ground_position) - (self.ground_position)) < (hero.height * 0.25) and self.sprite in allTouching(
+                hero.sprite)) and self.dead == False:
             changeSpriteImage(self.sprite, -2)
 
         distance = ((hero.sprite.rect.x - self.sprite.rect.x)**2 + (hero.sprite.rect.y - self.sprite.rect.y)**2)**0.5
@@ -264,7 +289,7 @@ class AdvancedEnemy(Enemy):
             self.x_velocity = hero.x_velocity * 2
 
         self.sprite.rect.x += self.x_velocity
-        self.sprite.rect.x += int(hero.x_velocity) * -1 
+        self.sprite.rect.x += int(hero.x_velocity) * -1
 
         # Keep Y position boundaries
         if self.sprite.rect.bottom > settings.lane_3_bottom:
@@ -278,6 +303,7 @@ class BossEnemy(Enemy):
         super().__init__()
         self.type = 'boss'
         self.health = 400
+        self.score_reward = 250
         self.shoot_cooldown = 10  # seconds
         self.last_shoot_time = clock()
         # create sprite
@@ -297,7 +323,7 @@ class BossEnemy(Enemy):
         self.ground_position = self.sprite.rect.bottom
         self.previous_position = (self.sprite.rect.x, self.sprite.rect.y)
         self.ground = True
-        self.hit = False
+        self.dead = False
         self.bullet = None
         # ...
         self.state = "driving"  # Add this attribute to keep track of the tank state
@@ -306,6 +332,7 @@ class BossEnemy(Enemy):
         self.timeOfNextFrame = clock()
         self.lastBulletTime = clock()
         self.last_state_change_time = clock()
+
 
         # show sprite and add to spriterGroup
         showSprite(self.sprite)
@@ -331,6 +358,12 @@ class BossEnemy(Enemy):
             # Update sprite image to the new frame
             changeSpriteImage(self.sprite, self.frame)
 
+        if self.dead == True or self.health < 0:
+            self.x_velocity = 0
+            self.gas = False
+        else:
+            changeSpriteImage(self.sprite, self.frame)
+
         # The boss moves up or down depending on the hero's position
         if hero.sprite.rect.bottom >= self.sprite.rect.bottom:
             self.y_velocity += 0.02
@@ -342,7 +375,7 @@ class BossEnemy(Enemy):
         
         # Update x position
         # The boss will stick to the right edge of the screen
-        if self.state == 'dead':
+        if self.dead == True:
             self.sprite.rect.x += self.x_velocity
             self.sprite.rect.x += int(hero.x_velocity) * -1
         else:
@@ -374,13 +407,6 @@ class BossEnemy(Enemy):
                 killSprite(self.bullet.sprite)
                 self.bullet = None  # Destroy the bullet if it went off screen
 
-        if self.health <= 0:
-            self.state = 'dead'
-            self.x_velocity = 0
-            self.gas = False
-        else:
-            changeSpriteImage(self.sprite, self.frame)
-
     def shoot_projectile(self):
         self.bullet = Bullet((self.sprite.rect.x+55), (self.sprite.rect.y+55), -8, 10)  # Create new bullet
 
@@ -409,6 +435,8 @@ class Bullet:
         
         # Check for bullet impact
         if self.sprite in allTouching(hero.sprite):
+            hero.hit = True
+            hero.health -= self.damage
             return False
         
         return True
@@ -416,20 +444,22 @@ class Bullet:
 
 def update_state(enemy, hero, bullets):
     # Common updates for all enemy types
-    
+    enemy.speed_meter = enemy.x_velocity
     # Update bottom location coordinate for sprite drawing order
     enemy.ground_position = enemy.sprite.rect.bottom
     
     # Check for bullet impact
     for bullet in bullets:
-        if (bullet.sprite in allTouching(enemy.sprite) and abs((bullet.ground_position)-(enemy.ground_position)) < (enemy.height*0.2)) and hero.sprite.rect.right < enemy.sprite.rect.left:
+        if (bullet.sprite in allTouching(enemy.sprite) and abs((bullet.ground_position)-(enemy.ground_position)) < (enemy.height*0.5)) and hero.sprite.rect.right < enemy.sprite.rect.left:
             if bullet.impact == False:
                 #enemy.hit = True
                 enemy.health -= bullet.damage
                 #print(enemy.health)
                 enemy.sprite.image.blit(settings.impact_picture, (0, 0))
                 bullet.impact = True
-                hero.score += 10
+                if enemy.health < 0:
+                    hero.score += enemy.score_reward
+                    enemy.dead = True
 
 
     # Check if the enemy is out of bounds
@@ -439,5 +469,5 @@ def update_state(enemy, hero, bullets):
     
     # Call the specific update_behavior method for each enemy type
     result = enemy.update_behavior(hero, bullets)
-    
+
     return result

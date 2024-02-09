@@ -3,7 +3,7 @@ stage_configuration = {
         "waves": [
             {
                 "wave_number": 0,
-                "enemy_count": 1,
+                "enemy_count": 0,
                 "vehicle_count": 9,
                 "enemy_types": ["advanced"],
                 "vehicle_types": ["car"],
@@ -19,8 +19,8 @@ stage_configuration = {
             },
             {
                 "wave_number": 2,
-                "enemy_count": 3,
-                "vehicle_count": 7,
+                "enemy_count": 4,
+                "vehicle_count": 15,
                 "enemy_types": ["advanced"],
                 "vehicle_types": ["car", "scooter"],
                 "cooldown": 8
@@ -28,9 +28,9 @@ stage_configuration = {
             {
                 "wave_number": 3,
                 "enemy_count": 4,
-                "vehicle_count": 12,
+                "vehicle_count": 3,
                 "enemy_types": ["advanced"],
-                "vehicle_types": ["car", "scooter"],
+                "vehicle_types": ["scooter"],
                 "cooldown": 8
             },
             {
@@ -38,7 +38,7 @@ stage_configuration = {
                 "enemy_count": 1,
                 "vehicle_count": 0,
                 "enemy_types": ["boss"],
-                "vehicle_types": ["car", "scooter"],
+                "vehicle_types": [],
                 "cooldown": 8
             },
             # More waves can be added here

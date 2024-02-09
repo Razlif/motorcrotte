@@ -51,9 +51,9 @@ class Poop():
         
         # if collected by player
         if self.sprite in allTouching(hero.sprite) and abs(hero.sprite.rect.bottom - self.sprite.rect.bottom) < 20 :
-                #idle_sound.stop()
-                #runing_sound.stop()
-                #collect_sound.play()
+                idle_sound.stop()
+                runing_sound.stop()
+                collect_sound.play()
                 hero.poop += 10
                 killSprite(self.sprite)
                 return False

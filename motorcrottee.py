@@ -96,7 +96,7 @@ show_start_screen()
 bg = setBackgroundImage( [  ["media/images/new_background5.png", "media/images/new_background5.png"]  ])
 
 #  Game Music Loop Begins:
-pygame.mixer.music.load('media/sounds/BGM16.mid')
+pygame.mixer.music.load('media/mainRiff.wav')
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(loops=-1)
 

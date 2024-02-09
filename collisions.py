@@ -23,15 +23,19 @@ def collision_handler(main_sprite, other_sprite):
                     if main_sprite.sprite.rect.bottom < other_sprite.sprite.rect.center[1]:  # Check if player is on the roof of the car
                         main_sprite.roof = True
                         main_sprite.ground_position = other_sprite.ground_position
-                        main_sprite.y_velocity = 0
+                        if main_sprite.jump == False:
+                            main_sprite.y_velocity = 0
                         if keyPressed("q"):
-                            main_sprite.ground = False
-                            # self.roof = False
-                            changeSpriteImage(main_sprite.sprite, main_sprite.frame)
-                            transformSprite(main_sprite.sprite, -45, main_sprite.scale, hflip=False, vflip=False)
+                            main_sprite.jump= True
+                        if keyPressed("d"):
+                            main_sprite.angle= 0
+                            transformSprite(main_sprite.sprite, main_sprite.angle, main_sprite.scale, hflip=False, vflip=False)
                             main_sprite.y_velocity -= main_sprite.jump_size
-                            main_sprite.jump = False
+                            main_sprite.trick= True
+
+                        
                     else:
+                        main_sprite.trick = False
                         main_sprite.roof = False
                         if main_sprite.sprite.rect.center[0] < other_sprite.sprite.rect.left: # if on left side decelerate by -1
                             main_sprite.x_velocity -= 1
@@ -72,7 +76,7 @@ def collision_handler(main_sprite, other_sprite):
                         main_sprite.jump = True
                         main_sprite.ground_position = other_sprite.ground_position
                         transformSprite(other_sprite.sprite, 0, other_sprite.scale, hflip=False, vflip=True)
-                        other_sprite.dead = True
+                        other_sprite.health = -1
                     else:
                         main_sprite.hit = True
                         main_sprite.health -= other_sprite.damage

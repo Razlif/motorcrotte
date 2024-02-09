@@ -14,19 +14,27 @@ import enemies
 
 setAutoUpdate(False)
 
-
 def stage_1(vehicle_list, hero, bullets, enemy_list, sidewalk_element_list, poop_list):
-
-    if hero.score < 30:
+    
+    if hero.score <1 and hero.poop<99:
         current_wave = 0
-    elif hero.score < 50:
+        if hero.stages[0] == False:
+            hero.notifications.append("Collect 100 Poop!")
+            hero.stages[0] = True
+    elif hero.score < 55:
         current_wave = 1
-    elif hero.score < 80:
+        if hero.stages[1]  == False:
+            hero.notifications.append("Here We Go!")
+            hero.stages[1]  = True
+    elif hero.score < 200:
         current_wave = 2
-    elif hero.score < 120:
+    elif hero.score < 400:
         current_wave = 3
-    elif hero.score < 150:
+    elif hero.score < 600:
         current_wave = 4
+        if hero.stages[4]  == False:
+            hero.notifications.append("Beware the Danger!")
+            hero.stages[4]  = True
     else:
         current_wave = 'end_level'
 

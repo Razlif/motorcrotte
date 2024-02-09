@@ -7,8 +7,11 @@ import math, random
 import game_configuration as settings
 import time
 from stage_config import *
-setAutoUpdate(False)
 import collisions
+
+setAutoUpdate(False)
+
+
 def update_display(enemy_list, hero, bullets, stage, wave):
     enemy_manager(enemy_list, stage, wave)
     new_enemy_list = []
@@ -16,6 +19,7 @@ def update_display(enemy_list, hero, bullets, stage, wave):
         if update_state(enemy, hero, bullets) != False:
             new_enemy_list.append(enemy)
     enemy_list[:] = new_enemy_list
+    
 def enemy_manager(enemy_list, stage, wave):
 
     if len(enemy_list) == 0:  # Only spawn new enemies if all previous enemies have been defeated
@@ -64,6 +68,7 @@ class Enemy():
 class SimpleEnemy(Enemy):
     def __init__(self):
         super().__init__()
+        self.type = "enemy"
         self.level = 'simple'
         self.health = 10
         self.damage = 20
@@ -104,13 +109,7 @@ class SimpleEnemy(Enemy):
             self.frame = (self.frame + 1) % self.number_of_frames
             self.timeOfNextFrame += 80
 
-        if self.dead == True or self.health < 0:
-            self.x_velocity *= 0.5
-            self.gas = False
-            if self.transparency > 0:
-                self.transparency -= 5
-                self.sprite.image.set_alpha(self.transparency)
-        else:
+        if self.dead == False:
             changeSpriteImage(self.sprite, self.frame)
             if (self.x_velocity < 0 or self.gas == False):
                 transformSprite(self.sprite, 0, self.scale, hflip=True, vflip=False)
@@ -179,6 +178,7 @@ class SimpleEnemy(Enemy):
 class AdvancedEnemy(Enemy):
     def __init__(self):
         super().__init__()
+        self.type = "enemy"
         self.level = 'advanced'
         self.health = 10
         self.damage = 20
@@ -226,13 +226,7 @@ class AdvancedEnemy(Enemy):
             self.timeOfNextFrame += 80
 
         
-        if self.dead == True or self.health < 0:
-            self.x_velocity *= 0.5
-            self.gas = False
-            if self.transparency > 0:
-                self.transparency -= 10
-                self.sprite.image.set_alpha(self.transparency)
-        else:
+        if self.dead == False:
             changeSpriteImage(self.sprite, self.frame)
             if (self.x_velocity < 0 or self.gas == False):
                 transformSprite(self.sprite, 0, self.scale, hflip=True, vflip=False)
@@ -358,10 +352,8 @@ class BossEnemy(Enemy):
             # Update sprite image to the new frame
             changeSpriteImage(self.sprite, self.frame)
 
-        if self.dead == True or self.health < 0:
-            self.x_velocity = 0
-            self.gas = False
-        else:
+        if self.dead == False:
+            self.sprite.rect.right = settings.screen_size_x + 200
             changeSpriteImage(self.sprite, self.frame)
 
         # The boss moves up or down depending on the hero's position
@@ -372,17 +364,9 @@ class BossEnemy(Enemy):
         
         # Update x position
         self.sprite.rect.y += self.y_velocity
-        
-        # Update x position
-        # The boss will stick to the right edge of the screen
-        if self.dead == True:
-            self.sprite.rect.x += self.x_velocity
-            self.sprite.rect.x += int(hero.x_velocity) * -1
-        else:
-            self.sprite.rect.right = settings.screen_size_x + 200
 
 
-            # Keep Y position boundaries
+        # Keep y position boundaries
         if self.sprite.rect.bottom > settings.lane_3_bottom:
             self.sprite.rect.bottom = settings.lane_3_bottom
         if self.sprite.rect.bottom < settings.side_walk_top:
@@ -457,9 +441,18 @@ def update_state(enemy, hero, bullets):
                 #print(enemy.health)
                 enemy.sprite.image.blit(settings.impact_picture, (0, 0))
                 bullet.impact = True
-                if enemy.health < 0:
-                    hero.score += enemy.score_reward
-                    enemy.dead = True
+                if enemy.health <= 0:
+                    enemy.x_velocity = 0
+                    enemy.gas = False
+                    if enemy.dead == False:
+                        enemy.dead = True
+                        hero.score += enemy.score_reward
+                        selected_phrase = random.choice(settings.enemy_down_notifications)
+                        hero.notifications.append(selected_phrase)                       
+                        killSprite(enemy.sprite)
+                        return False
+
+                    
 
 
     # Check if the enemy is out of bounds

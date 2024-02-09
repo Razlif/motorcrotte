@@ -44,7 +44,12 @@ class Player():
         self.hit = False
         self.roof = False
         self.font = pygame.font.Font('media/Ghoust_Solid.otf', 45)
-
+        self.notifications = []
+        self.notification_visible = False
+        self.notification_time = clock()
+        self.stages = [False,False,False,False,False]
+        self.angle = 0
+        self.trick = False
         # create sprite
         self.sprite = makeSprite("media/images/hero/hero_1.png", 1)
         for i in range(2, 5):
@@ -148,15 +153,15 @@ class Player():
         # when gas
         if self.gas == True:
             changeSpriteImage(self.sprite, self.frame)
-            # idle_sound.stop()
-            # runing_sound.play()
+            idle_sound.stop()
+            runing_sound.play()
             if self.x_velocity < settings.hero_top_speed:  # speed limit - but can be exceeded using the DASH move
                 self.x_velocity += settings.hero_gas
 
         # when break
         elif self.breaking == True:
-            # runing_sound.stop()
-            # idle_sound.play()
+            runing_sound.stop()
+            idle_sound.play()
             if self.x_velocity > 0:
                 self.x_velocity -= settings.hero_break
                 if self.sprite.rect.x > settings.hero_back_border:  # if breaking while player position hogher than 100 player's position will move back on the screen
@@ -170,8 +175,8 @@ class Player():
             changeSpriteImage(self.sprite, self.frame)
             if self.x_velocity > 0:
                 self.x_velocity -= settings.hero_natural_deceleration  # natural deceleration
-                # runing_sound.stop()
-                # idle_sound.play()
+                runing_sound.stop()
+                idle_sound.play()
 
         # when up
         if self.up == True:
@@ -193,6 +198,21 @@ class Player():
             transformSprite(self.sprite, -45, self.scale, hflip=False, vflip=False)
             self.y_velocity -= self.jump_size
             self.jump = False
+
+        # when trick
+        if self.trick== True:
+            self.ground = False 
+            #self.roof = False
+            #changeSpriteImage(self.sprite, self.frame)
+
+            if self.angle <=360:
+                self.angle +=20
+                transformSprite(self.sprite, self.angle, self.scale, hflip=False, vflip=False)
+            else:
+                self.trick = False
+                selected_phrase = "Flidipi flip!"
+                self.notifications.append(selected_phrase)
+
 
         # when dash
         if self.dash == True:
@@ -218,9 +238,9 @@ class Player():
                 new_bullet = Bullet(self.sprite.rect.x + 20, self.sprite.rect.y + 20, self.xdir * 5, 0, self)
                 bullets.append(new_bullet)  # create a new bullet and append it to bullet list
                 self.lastBulletTime = clock()
-                # runing_sound.stop()
-                # idle_sound.stop()
-                # shoot_sound.play()
+                runing_sound.stop()
+                idle_sound.stop()
+                shoot_sound.play()
                 self.poop -= 1
 
         # Make sure player position is inside play boundries

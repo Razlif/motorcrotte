@@ -24,6 +24,9 @@ screen_size_x = 1200
 
 screen_size_y = 686
 
+# set screen
+screen = screenSize(screen_size_x, screen_size_y)
+
 gravity = 0.5
 
 # poop settings
@@ -127,3 +130,19 @@ hero_gas = 0.05
 hero_health = 1000
 
 bullet_damage = 10
+
+
+# notifications
+
+enemy_down_notifications = [
+    "Enemy down!",
+    "Target neutralized!",
+    "One less to worry about!",
+    "Got 'em!",
+    "That's another one!",
+    "Boom, headshot!",
+    "Nailed it!",
+    "poop master",
+    "poop master craftsman",
+    "poop extravaganza"
+]

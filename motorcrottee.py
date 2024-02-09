@@ -13,6 +13,8 @@ import game_configuration as settings
 import enemies
 
 
+
+
 setAutoUpdate(False)
 
 def sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero):
@@ -27,15 +29,31 @@ def sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_
             spriteGroup.change_layer(sprite.sprite, i)
         except:
             pass
-
+        
 def draw_text(surface, text, size, x, y):
     # choose a font (you can choose another if you like)
-    font_name = pygame.font.match_font('arial')
-    font = pygame.font.Font(font_name, size)
+    #font_name = pygame.font.match_font('arial')
+    font = pygame.font.Font('media/Ghoust_Solid.otf', size)
     text_surface = font.render(text, True, 'WHITE')  # True stands for anti-aliasing, WHITE is the color of the text which is usually defined as (255, 255, 255)
     text_rect = text_surface.get_rect()
     text_rect.midtop = (x, y)
     surface.blit(text_surface, text_rect)
+
+def process_notifications(hero, screen, x=500, y=25, size=100, duration=6000, interval=1000):
+
+    if hero.notifications:  # While there are notifications left
+        message = hero.notifications[0]  # Get the first notification
+
+        elapsed_time = clock() - hero.notification_time
+        if elapsed_time < duration:
+            if elapsed_time % (2 * interval) < interval:  # This gives a simple flickering effect
+                draw_text(screen, message, size, x, y)
+        else:
+            hero.notifications.pop(0)
+            hero.notification_time = clock()  # Reset the timer for the next notification
+
+
+
 
 def show_start_screen():
     # Load the image
@@ -47,7 +65,7 @@ def show_start_screen():
 
     # Draw the text
     draw_text(screen, "MOTOCROTTE", 64, settings.screen_size_x / 2, settings.screen_size_y / 4)
-    draw_text(screen, "Press any key to start", 18, settings.screen_size_x / 2, settings.screen_size_y / 2)
+    draw_text(screen, "Press any key to start", 45, settings.screen_size_x / 2, settings.screen_size_y / 2)
 
     # Update the display
     pygame.display.flip()
@@ -69,8 +87,7 @@ def wait_for_key():
             if event.type == pygame.KEYUP:
                 waiting = False
 
-# set screen
-screen = screenSize(settings.screen_size_x, settings.screen_size_y)
+
 
 # Show the start screen
 show_start_screen()
@@ -78,10 +95,10 @@ show_start_screen()
 # set scrolling background
 bg = setBackgroundImage( [  ["media/images/new_background5.png", "media/images/new_background5.png"]  ])
 
-# Game Music Loop Begins:
-#pygame.mixer.music.load('media/sounds/Action-Rock.mp3')
-#pygame.mixer.music.set_volume(0.4)
-#pygame.mixer.music.play(loops=-1)
+#  Game Music Loop Begins:
+pygame.mixer.music.load('media/sounds/BGM16.mid')
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(loops=-1)
 
 
 # init player
@@ -95,11 +112,20 @@ sidewalk_element_list = []
 enemy_list = []
 stage = 1
 
+
 #main game loop
 while True:
     
     if stage == 1:
         current_wave = stage_handler.stage_1(vehicle_list, hero, bullets, enemy_list, sidewalk_element_list, poop_list)
+        # sort the spriteGroup based on the y position of the bottom of each sprite
+        sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero)
+        
+        process_notifications(hero, screen, 500, 25, 85, 3000, 500)
+
+        # update score
+        hero.draw_labels(screen, 10, 10)
+        
         if current_wave == 'end_level':
             # Display end of level screen
             # Load the image
@@ -124,14 +150,8 @@ while True:
             screen.blit(score_text, (screen.get_width() // 2 - score_text.get_width() // 2, screen.get_height() // 2))
             screen.blit(performance_text,
                         (screen.get_width() // 2 - performance_text.get_width() // 2, screen.get_height() // 2 + 60))
-        else:
 
-            # sort the spriteGroup based on the y position of the bottom of each sprite
-            sort_sprites_by_ground_position(spriteGroup, vehicle_list, sidewalk_element_list, poop_list, enemy_list, bullets, hero)
-
-            # update score
-            hero.draw_labels(screen, 10, 10)
-
+            
     updateDisplay()
     tick(90)
 
